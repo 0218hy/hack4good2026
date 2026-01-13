@@ -22,6 +22,16 @@
 # Running go
 ```go run cmd/*.go```
 
+# Creating posgtresql database
+1. Connect to default DB
+    ```psql -d postgres```
+2. Create user and database
+    ```CREATE USER h4g_user WITH PASSWORD 'h4g_password';```
+    ```CREATE DATABASE h4g OWNER h4g_user;```
+3. To exit
+    ```\q```
+
+
 
 # Updating my backend database
 1. Connect to PostgreSQL
