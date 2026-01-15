@@ -9,11 +9,15 @@ import (
 )
 
 type Querier interface {
+	CreateActivity(ctx context.Context, arg CreateActivityParams) (Activity, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteActivityByID(ctx context.Context, id int32) error
 	DeleteSessionsByUserID(ctx context.Context, userID int32) error
+	GetActivityByID(ctx context.Context, id int32) (int32, error)
 	GetSession(ctx context.Context, id int32) (Session, error)
 	GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAndPhoneParams) (GetUserByNameAndPhoneRow, error)
+	ListActivities(ctx context.Context) ([]Activity, error)
 	RevokeSession(ctx context.Context, id int32) error
 }
 

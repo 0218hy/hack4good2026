@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"hack4good-backend/internal/env"
 	"log/slog"
 	"os"
 
-	"github.com/0218hy/hack4good2026.git/internal/env"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )

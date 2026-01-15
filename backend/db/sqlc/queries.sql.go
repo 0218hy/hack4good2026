@@ -11,6 +11,76 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createActivity = `-- name: CreateActivity :one
+INSERT INTO activities (
+  id, title, description, venue, start_time, end_time,
+  signup_deadline, participant_capacity, volunteer_capacity,
+  wheelchair_accessible, sign_language_available, requires_payment,
+  status, created_by, created_at
+) VALUES (
+    gen_random_uuid(), $1, $2, $3, $4, $5,
+    $6, $7, $8,
+    $9, $10, $11,
+    $12, $13, $14
+)
+RETURNING id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
+`
+
+type CreateActivityParams struct {
+	Title                 string           `json:"title"`
+	Description           pgtype.Text      `json:"description"`
+	Venue                 string           `json:"venue"`
+	StartTime             pgtype.Timestamp `json:"start_time"`
+	EndTime               pgtype.Timestamp `json:"end_time"`
+	SignupDeadline        pgtype.Timestamp `json:"signup_deadline"`
+	ParticipantCapacity   int32            `json:"participant_capacity"`
+	VolunteerCapacity     int32            `json:"volunteer_capacity"`
+	WheelchairAccessible  bool             `json:"wheelchair_accessible"`
+	SignLanguageAvailable bool             `json:"sign_language_available"`
+	RequiresPayment       bool             `json:"requires_payment"`
+	Status                string           `json:"status"`
+	CreatedBy             int32            `json:"created_by"`
+	CreatedAt             pgtype.Timestamp `json:"created_at"`
+}
+
+func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) (Activity, error) {
+	row := q.db.QueryRow(ctx, createActivity,
+		arg.Title,
+		arg.Description,
+		arg.Venue,
+		arg.StartTime,
+		arg.EndTime,
+		arg.SignupDeadline,
+		arg.ParticipantCapacity,
+		arg.VolunteerCapacity,
+		arg.WheelchairAccessible,
+		arg.SignLanguageAvailable,
+		arg.RequiresPayment,
+		arg.Status,
+		arg.CreatedBy,
+		arg.CreatedAt,
+	)
+	var i Activity
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Venue,
+		&i.StartTime,
+		&i.EndTime,
+		&i.SignupDeadline,
+		&i.ParticipantCapacity,
+		&i.VolunteerCapacity,
+		&i.WheelchairAccessible,
+		&i.SignLanguageAvailable,
+		&i.RequiresPayment,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createSession = `-- name: CreateSession :one
 INSERT INTO sessions (
     id,
@@ -86,6 +156,16 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const deleteActivityByID = `-- name: DeleteActivityByID :exec
+DELETE FROM activities
+WHERE id = $1
+`
+
+func (q *Queries) DeleteActivityByID(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteActivityByID, id)
+	return err
+}
+
 const deleteSessionsByUserID = `-- name: DeleteSessionsByUserID :exec
 DELETE FROM sessions
 WHERE user_id = $1
@@ -94,6 +174,21 @@ WHERE user_id = $1
 func (q *Queries) DeleteSessionsByUserID(ctx context.Context, userID int32) error {
 	_, err := q.db.Exec(ctx, deleteSessionsByUserID, userID)
 	return err
+}
+
+const getActivityByID = `-- name: GetActivityByID :one
+SELECT
+  id
+FROM
+  activities
+WHERE
+  id = $1
+`
+
+func (q *Queries) GetActivityByID(ctx context.Context, id int32) (int32, error) {
+	row := q.db.QueryRow(ctx, getActivityByID, id)
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getSession = `-- name: GetSession :one
@@ -144,6 +239,49 @@ func (q *Queries) GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAn
 		&i.Role,
 	)
 	return i, err
+}
+
+const listActivities = `-- name: ListActivities :many
+SELECT
+  id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at 
+FROM
+  activities
+`
+
+func (q *Queries) ListActivities(ctx context.Context) ([]Activity, error) {
+	rows, err := q.db.Query(ctx, listActivities)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Activity
+	for rows.Next() {
+		var i Activity
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Venue,
+			&i.StartTime,
+			&i.EndTime,
+			&i.SignupDeadline,
+			&i.ParticipantCapacity,
+			&i.VolunteerCapacity,
+			&i.WheelchairAccessible,
+			&i.SignLanguageAvailable,
+			&i.RequiresPayment,
+			&i.Status,
+			&i.CreatedBy,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const revokeSession = `-- name: RevokeSession :exec
