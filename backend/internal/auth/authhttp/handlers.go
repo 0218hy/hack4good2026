@@ -2,11 +2,11 @@ package authhttp
 
 import (
 	"encoding/json"
+	"hack4good-backend/internal/auth"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/0218hy/hack4good2026.git/internal/auth"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 

@@ -1,4 +1,4 @@
-module github.com/0218hy/hack4good2026.git
+module hack4good-backend
 
 go 1.25.5
 
