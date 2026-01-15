@@ -24,13 +24,7 @@ RETURNING *;
 
 -- name: DeleteBookingByID :exec
 DELETE FROM bookings
-WHERE id = $1;
-
--- name: UpdateBookingAttendanceStatus :one
-UPDATE bookings
-SET attendance_status = $2
-WHERE id = $1
-RETURNING *;    
+WHERE id = $1;   
 
 -- name: ListBookingsByActivityID :many
 SELECT
