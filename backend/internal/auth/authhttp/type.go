@@ -1,6 +1,7 @@
 package authhttp
 
 import (
+	repo "hack4good-backend/db/sqlc"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -14,7 +15,7 @@ type User struct {
 }
 
 // convert DB user to response user
-func toUser(u *users.User) User {
+func toUser(u repo.User) User {
 	return User{
 		ID:    u.ID,
 		Name:  u.Name,
@@ -53,7 +54,7 @@ type CreateSessionParams struct {
 }
 
 type SessionResponse struct {
-	SessionID             string    `json:"session_id"`
+	SessionID             int32    `json:"session_id"`
 	AccessToken           string    `json:"access_token"`
 	RefreshToken          string    `json:"refresh_token"`
 	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`

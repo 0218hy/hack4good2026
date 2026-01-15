@@ -14,9 +14,14 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteActivityByID(ctx context.Context, id int32) error
 	DeleteSessionsByUserID(ctx context.Context, userID int32) error
+	DeleteUserByID(ctx context.Context, id int32) error
 	GetActivityByID(ctx context.Context, id int32) (int32, error)
+	GetAllUsers(ctx context.Context) ([]User, error)
 	GetSession(ctx context.Context, id int32) (Session, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserByID(ctx context.Context, id int32) (User, error)
 	GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAndPhoneParams) (GetUserByNameAndPhoneRow, error)
+	GetUserByPhone(ctx context.Context, phone string) (User, error)
 	ListActivities(ctx context.Context) ([]Activity, error)
 	RevokeSession(ctx context.Context, id int32) error
 }

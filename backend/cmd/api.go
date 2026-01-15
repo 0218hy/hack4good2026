@@ -1,6 +1,9 @@
 package main
 
 import (
+	repo "hack4good-backend/db/sqlc"
+	"hack4good-backend/internal/auth"
+	"hack4good-backend/internal/users"
 	"log"
 	"net/http"
 	"time"
@@ -27,6 +30,16 @@ func (app *application) mount() http.Handler {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("all good!\n"))
   	})
+
+	// For users
+	userService := users.NewService(repo.New(app.db))
+	userHandler := users.NewHandler(userService)
+	// staff func
+	r.Group(func(r chi.Router) {
+		r.Use(auth.RequireRole(tokenMaker, "staff"))
+		r.Post("/users", userHandler.Create)
+	})
+	
 
 	return r
 }

@@ -125,8 +125,14 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (name, phone, email, role)
-VALUES ($1, $2, $3, $4)
+INSERT INTO users (
+    name,
+    phone,
+    email,
+    role
+) VALUES (
+    $1, $2, $3, $4
+)
 RETURNING id, name, phone, email, role, created_at
 `
 
@@ -176,6 +182,16 @@ func (q *Queries) DeleteSessionsByUserID(ctx context.Context, userID int32) erro
 	return err
 }
 
+const deleteUserByID = `-- name: DeleteUserByID :exec
+DELETE FROM users
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUserByID(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteUserByID, id)
+	return err
+}
+
 const getActivityByID = `-- name: GetActivityByID :one
 SELECT
   id
@@ -191,6 +207,38 @@ func (q *Queries) GetActivityByID(ctx context.Context, id int32) (int32, error) 
 	return id, err
 }
 
+const getAllUsers = `-- name: GetAllUsers :many
+SELECT id, name, phone, email, role, created_at FROM users
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
+	rows, err := q.db.Query(ctx, getAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Phone,
+			&i.Email,
+			&i.Role,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSession = `-- name: GetSession :one
 SELECT id, user_id, refresh_token, is_revoked, expires_at, created_at FROM sessions WHERE id = $1
 `
@@ -204,6 +252,44 @@ func (q *Queries) GetSession(ctx context.Context, id int32) (Session, error) {
 		&i.RefreshToken,
 		&i.IsRevoked,
 		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, name, phone, email, role, created_at FROM users
+WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Phone,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, name, phone, email, role, created_at FROM users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Phone,
+		&i.Email,
+		&i.Role,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -237,6 +323,25 @@ func (q *Queries) GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAn
 		&i.Phone,
 		&i.Email,
 		&i.Role,
+	)
+	return i, err
+}
+
+const getUserByPhone = `-- name: GetUserByPhone :one
+SELECT id, name, phone, email, role, created_at FROM users
+WHERE phone = $1
+`
+
+func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByPhone, phone)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Phone,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
 	)
 	return i, err
 }

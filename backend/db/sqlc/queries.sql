@@ -3,11 +3,6 @@ SELECT id, name, phone, email, role
 FROM users
 WHERE LOWER(name) = LOWER($1) AND phone = $2;
 
--- name: CreateUser :one
-INSERT INTO users (name, phone, email, role)
-VALUES ($1, $2, $3, $4)
-RETURNING *;
-
 -- name: CreateSession :one
 INSERT INTO sessions (
     id,
@@ -66,5 +61,35 @@ RETURNING *;
 DELETE FROM activities
 WHERE id = $1;
 
+-- name: CreateUser :one
+INSERT INTO users (
+    name,
+    phone,
+    email,
+    role
+) VALUES (
+    $1, $2, $3, $4
+)
+RETURNING *;
+
+-- name: GetUserByID :one
+SELECT * FROM users
+WHERE id = $1;
+
+-- name: GetUserByPhone :one
+SELECT * FROM users
+WHERE phone = $1;
+
+-- name: GetUserByEmail :one
+SELECT * FROM users
+WHERE email = $1;
+
+-- name: GetAllUsers :many
+SELECT * FROM users
+ORDER BY created_at DESC;
+
+-- name: DeleteUserByID :exec
+DELETE FROM users
+WHERE id = $1;
 
 

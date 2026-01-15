@@ -3,12 +3,14 @@ package authhttp
 import (
 	"encoding/json"
 	"hack4good-backend/internal/auth"
+	"hack4good-backend/internal/users"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
 
 type handler struct {
 	service Service
