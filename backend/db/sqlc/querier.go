@@ -24,7 +24,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int32) (User, error)
 	GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAndPhoneParams) (GetUserByNameAndPhoneRow, error)
-	GetUserByPhone(ctx context.Context, phone string) (User, error)
+	GetUserByPhone(ctx context.Context, phone interface{}) (User, error)
 	ListActivities(ctx context.Context) ([]Activity, error)
 	ListBookings(ctx context.Context) ([]Booking, error)
 	ListBookingsByActivityID(ctx context.Context, activityID int32) ([]Booking, error)

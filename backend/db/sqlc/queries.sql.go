@@ -23,7 +23,7 @@ INSERT INTO activities (
     $9, $10, $11,
     $12, $13, $14
 )
-RETURNING id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
+RETURNING id, title, date, venue, description, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
 `
 
 type CreateActivityParams struct {
@@ -64,8 +64,9 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
-		&i.Description,
+		&i.Date,
 		&i.Venue,
+		&i.Description,
 		&i.StartTime,
 		&i.EndTime,
 		&i.SignupDeadline,
@@ -181,14 +182,14 @@ INSERT INTO users (
 ) VALUES (
     $1, $2, $3, $4
 )
-RETURNING id, name, phone, email, role, created_at
+RETURNING id, name, phone, email, password, role, created_at
 `
 
 type CreateUserParams struct {
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	Name  string      `json:"name"`
+	Phone interface{} `json:"phone"`
+	Email string      `json:"email"`
+	Role  string      `json:"role"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -204,6 +205,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Name,
 		&i.Phone,
 		&i.Email,
+		&i.Password,
 		&i.Role,
 		&i.CreatedAt,
 	)
@@ -283,7 +285,7 @@ func (q *Queries) GetActivityByID(ctx context.Context, id int32) (Activity, erro
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, phone, email, role, created_at FROM users
+SELECT id, name, phone, email, password, role, created_at FROM users
 ORDER BY created_at DESC
 `
 
@@ -301,6 +303,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.Name,
 			&i.Phone,
 			&i.Email,
+			&i.Password,
 			&i.Role,
 			&i.CreatedAt,
 		); err != nil {
@@ -359,7 +362,7 @@ func (q *Queries) GetSession(ctx context.Context, id string) (Session, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, phone, email, role, created_at FROM users
+SELECT id, name, phone, email, password, role, created_at FROM users
 WHERE email = $1
 `
 
@@ -371,6 +374,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Name,
 		&i.Phone,
 		&i.Email,
+		&i.Password,
 		&i.Role,
 		&i.CreatedAt,
 	)
@@ -378,7 +382,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, phone, email, role, created_at FROM users
+SELECT id, name, phone, email, password, role, created_at FROM users
 WHERE id = $1
 `
 
@@ -390,6 +394,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
 		&i.Name,
 		&i.Phone,
 		&i.Email,
+		&i.Password,
 		&i.Role,
 		&i.CreatedAt,
 	)
@@ -403,16 +408,16 @@ WHERE LOWER(name) = LOWER($1) AND phone = $2
 `
 
 type GetUserByNameAndPhoneParams struct {
-	Lower string `json:"lower"`
-	Phone string `json:"phone"`
+	Lower string      `json:"lower"`
+	Phone interface{} `json:"phone"`
 }
 
 type GetUserByNameAndPhoneRow struct {
-	ID    int32  `json:"id"`
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	ID    int32       `json:"id"`
+	Name  string      `json:"name"`
+	Phone interface{} `json:"phone"`
+	Email string      `json:"email"`
+	Role  string      `json:"role"`
 }
 
 func (q *Queries) GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAndPhoneParams) (GetUserByNameAndPhoneRow, error) {
@@ -429,11 +434,11 @@ func (q *Queries) GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAn
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, name, phone, email, role, created_at FROM users
+SELECT id, name, phone, email, password, role, created_at FROM users
 WHERE phone = $1
 `
 
-func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
+func (q *Queries) GetUserByPhone(ctx context.Context, phone interface{}) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByPhone, phone)
 	var i User
 	err := row.Scan(
@@ -441,6 +446,7 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 		&i.Name,
 		&i.Phone,
 		&i.Email,
+		&i.Password,
 		&i.Role,
 		&i.CreatedAt,
 	)
@@ -449,7 +455,7 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 
 const listActivities = `-- name: ListActivities :many
 SELECT
-  id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at 
+  id, title, date, venue, description, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at 
 FROM
   activities
 `
@@ -466,8 +472,9 @@ func (q *Queries) ListActivities(ctx context.Context) ([]Activity, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
-			&i.Description,
+			&i.Date,
 			&i.Venue,
+			&i.Description,
 			&i.StartTime,
 			&i.EndTime,
 			&i.SignupDeadline,
