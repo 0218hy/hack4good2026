@@ -11,6 +11,7 @@ type User struct {
 	ID int32
 	Name string
 	Email string
+	PasswordHash string
 	Role string
 }
 
@@ -32,8 +33,9 @@ type RegisterUserPayload struct {
 }
 
 type LoginUserPayload struct {
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
+	Email  string `json:"name"`
+	Phone string `json:"phone,omitempty"`
+	Password string `json:"password,omitempty"`
 }
 
 type RenewAccessTokenPayload struct {

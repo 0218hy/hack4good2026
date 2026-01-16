@@ -22,3 +22,20 @@ func CheckPhone (hashed string, plain []byte) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashed), plain)
 	return err == nil
 }
+
+// hash password
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	return string(hash), nil
+}
+
+// compare password with hash
+func CheckPassword (hashed string, plain []byte) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashed), plain)
+	return err == nil
+}
