@@ -95,7 +95,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// role-based credential check 
 	switch user.Role {
 	case "staff":
-		storedPassword := user.Password.String
+		storedPassword := user.Password.(string)
 		if storedPassword == "" {
 			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return
@@ -105,8 +105,8 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	default:
-		storedPhone := user.Phone.String
-		if storedPhone == "" {
+		storedPhone, ok := user.Phone.(string)
+		if !ok || storedPhone == "" {
 			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return
 		}
