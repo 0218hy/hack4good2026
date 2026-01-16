@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
-import logo from 'figma:asset/31aafb7be209c41dd63a586051c18a4a58b4f123.png';
 
 export default function LoginPage() {
   const navigate = useNavigate();

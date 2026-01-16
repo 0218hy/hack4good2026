@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { Activity as ActivityIcon, LogOut, Calendar, PlusCircle, Users, List, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Activity } from '../types/activity';
 import CreateActivityModal from './CreateActivityModal';
 import AdminActivityPanel from './AdminActivityPanel';
 import EditActivityModal from './EditActivityModal';
 import StaffAccountCreation from './StaffAccountCreation';
 import EditParticipantModal from './EditParticipantModal';
 import EditVolunteerModal from './EditVolunteerModal';
-import logo from 'figma:asset/31aafb7be209c41dd63a586051c18a4a58b4f123.png';
 
 interface StaffDashboardProps {
   activities: Activity[];

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Heart, Users, Calendar, Phone, Mail, Facebook, Twitter, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import logo from 'figma:asset/31aafb7be209c41dd63a586051c18a4a58b4f123.png';
 
 export default function LandingPage() {
   return (
@@ -10,7 +9,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Activity Hub Logo" className="h-10" />
+              <img src={"assets/logo.png"} alt="Activity Hub Logo" className="h-10" />
               <span className="text-3xl font-bold text-gray-900">Activity Hub</span>
             </div>
           </div>
