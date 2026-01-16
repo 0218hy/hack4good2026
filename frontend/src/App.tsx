@@ -1,45 +1,46 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
-import RegisterRoleSelector from './components/RegisterRoleSelector';
-import ParticipantRegister from './components/ParticipantRegister';
-import CaregiverRegister from './components/CaregiverRegister';
-import VolunteerRegister from './components/VolunteerRegister';
-import StaffRegister from './components/StaffRegister';
 import LoginPage from './components/LoginPage';
-import ParticipantDashboard from './components/ParticipantDashboard';
-import CaregiverDashboard from './components/CaregiverDashboard';
-import VolunteerDashboard from './components/VolunteerDashboard';
-import StaffDashboard from './components/StaffDashboard';
-import { getAllActivitiesWithRecurring } from './utils/recurringActivities';
 
 export default function App() {
-  // Store base activities (including recurring patterns)
-  const [baseActivities, setBaseActivities] = useState<Activity[]>(mockActivities);
-  
-  // Expanded activities with all recurring instances
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Generate all recurring instances whenever base activities change
   useEffect(() => {
-    const expandedActivities = getAllActivitiesWithRecurring(baseActivities);
-    setActivities(expandedActivities);
-  }, [baseActivities]);
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/activities'); // replace with your backend URL
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data: Activity[] = await res.json();
+        setActivities(data)
+
+        // // Expand recurring activities if needed
+        // const expandedActivities = getAllActivitiesWithRecurring(data);
+        // setActivities(expandedActivities);
+        setLoading(false);
+      } catch (err: any) {
+        console.error(err);
+        setError('Failed to load activities from backend.');
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
+  if (loading) return <div>Loading activities...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/register" element={<RegisterRoleSelector />} />
-        <Route path="/register/participant" element={<ParticipantRegister />} />
-        <Route path="/register/caregiver" element={<CaregiverRegister />} />
-        <Route path="/register/volunteer" element={<VolunteerRegister />} />
-        <Route path="/register/staff" element={<StaffRegister />} />
+        <Route path="/" element={<LandingPage activities={activities} />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard/participant" element={<ParticipantDashboard activities={activities} setActivities={setActivities} />} />
-        <Route path="/dashboard/caregiver" element={<CaregiverDashboard activities={activities} setActivities={setActivities} />} />
-        <Route path="/dashboard/volunteer" element={<VolunteerDashboard activities={activities} setActivities={setActivities} />} />
-        <Route path="/dashboard/staff" element={<StaffDashboard activities={activities} setActivities={setActivities} baseActivities={baseActivities} setBaseActivities={setBaseActivities} />} />
       </Routes>
     </Router>
   );

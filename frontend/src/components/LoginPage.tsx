@@ -19,7 +19,7 @@ export default function LoginPage() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Activity Hub Logo" className="h-10" />
+            <img src={"assets/logo.png"} alt="Activity Hub Logo" className="h-10" />
             <span className="text-3xl font-bold text-gray-900">Activity Hub</span>
           </div>
         </div>
