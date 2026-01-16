@@ -3,6 +3,8 @@
 CREATE TABLE IF NOT EXISTS activities (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
+    date DATE NOT NULL,
+    venue TEXT NOT NULL,
     description TEXT,
     venue TEXT NOT NULL,
     start_time TIMESTAMP NOT NULL,
@@ -18,6 +20,7 @@ CREATE TABLE IF NOT EXISTS activities (
     created_by INTEGER NOT NULL REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
 -- +goose StatementEnd
 
 -- +goose Down
