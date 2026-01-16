@@ -1,8 +1,8 @@
 package authhttp
 
 import (
-	"encoding/json"
 	"hack4good-backend/internal/auth"
+	"hack4good-backend/internal/json"
 	"hack4good-backend/internal/users"
 	"log"
 	"net/http"
@@ -14,7 +14,7 @@ import (
 
 type handler struct {
 	service Service
-	userServicie users.Service
+	userService users.Service
 	tokenMaker *auth.JWTMaker
 }
 
@@ -29,7 +29,7 @@ func NewHandler(service Service, userService users.Service, tokenMaker *auth.JWT
 // handle registration of a new user
 func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.Read(r, &payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -62,7 +62,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	// create user in DB
 	newUser := users.CreateUserParams{
 		Name:      payload.Name,
-		PhoneHash: hashedPhone,
+		Phone: hashedPhone,
 		Email:     payload.Email,
 		Role:      payload.Role,
 	}
@@ -74,31 +74,31 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{"user_id": userID})
+	json.Write(w, http.StatusOK, map[string]interface{}{"user_id": userID})
 }
 
-// handle login using name and phone 
+// handle login using email and phone 
 func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	var payload LoginUserPayload
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.Read(r, &payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// get user info from DB
-	user, err := h.userService.GetUserByName(r.Context(), payload.Name)
+	user, err := h.userService.GetUserByEmail(r.Context(), payload.Name)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusBadRequest)
 		return
 	}
 
 	// compare the phone number with user info from DB
-	if !auth.CheckPhone(payload.Phone, user.PhoneHash) {
+	if !auth.CheckPhone(user.Phone, []byte(payload.Phone)) {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
+	// create JWT token
 	accessToken, accessClaims, err := h.tokenMaker.CreateToken(int32(user.ID), user.Name, user.Role, 15*time.Minute)
 	if err != nil {
 		http.Error(w, "failed to create access token", http.StatusInternalServerError)
@@ -123,6 +123,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// return response
 	resp := SessionResponse{
 		SessionID:             session.ID,
 		AccessToken:           accessToken,
@@ -132,8 +133,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		User:                  toUser(user),
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
+	json.Write(w, http.StatusOK, resp)
 }
 
 // handle logout 
@@ -150,14 +150,13 @@ func (h *handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "logged out successfully"})
+	json.Write(w, http.StatusOK, map[string]string{"message": "logged out successfully"})
 }
 
-// to renew access token for sessdionl
+// to renew access token for session
 func (h *handler) RenewAccessToken(w http.ResponseWriter, r *http.Request) {
 	var payload RenewAccessTokenPayload
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.Read(r, &payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -180,10 +179,11 @@ func (h *handler) RenewAccessToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(RenewAccessTokenResponse{
+	resp := RenewAccessTokenResponse{
 		AccessToken:          accessToken,
 		AccessTokenExpiresAt: accessClaims.ExpiresAt.Time,
-	})
+	}
+
+	json.Write(w, http.StatusOK, resp)
 }
 

@@ -54,7 +54,7 @@ type CreateSessionParams struct {
 }
 
 type SessionResponse struct {
-	SessionID             int32    `json:"session_id"`
+	SessionID             string    `json:"session_id"`
 	AccessToken           string    `json:"access_token"`
 	RefreshToken          string    `json:"refresh_token"`
 	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`

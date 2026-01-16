@@ -55,7 +55,7 @@ type ParticipantProfile struct {
 }
 
 type Session struct {
-	ID           int32            `json:"id"`
+	ID           string           `json:"id"`
 	UserID       int32            `json:"user_id"`
 	RefreshToken string           `json:"refresh_token"`
 	IsRevoked    bool             `json:"is_revoked"`

@@ -36,10 +36,10 @@ func (app *application) mount() http.Handler {
 	userHandler := users.NewHandler(userService)
 	// staff func
 	r.Group(func(r chi.Router) {
-		r.Use(auth.RequireRole(tokenMaker, "staff"))
-		r.Post("/users", userHandler.Create)
-	})
-	
+        r.Use(auth.RequireRole(tokenMaker, "staff"))
+        r.Post("/users", userHandler.CreateUser)      // Create user
+        r.Delete("/users/{id}", userHandler.DeleteUserByID) // Delete user
+    })
 
 	return r
 }

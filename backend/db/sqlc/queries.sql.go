@@ -89,16 +89,17 @@ INSERT INTO sessions (
     is_revoked,
     expires_at
 ) VALUES (
-    gen_random_uuid(),
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5
 )
 RETURNING id, user_id, refresh_token, is_revoked, expires_at, created_at
 `
 
 type CreateSessionParams struct {
+	ID           string           `json:"id"`
 	UserID       int32            `json:"user_id"`
 	RefreshToken string           `json:"refresh_token"`
 	IsRevoked    bool             `json:"is_revoked"`
@@ -107,6 +108,7 @@ type CreateSessionParams struct {
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
 	row := q.db.QueryRow(ctx, createSession,
+		arg.ID,
 		arg.UserID,
 		arg.RefreshToken,
 		arg.IsRevoked,
@@ -243,7 +245,7 @@ const getSession = `-- name: GetSession :one
 SELECT id, user_id, refresh_token, is_revoked, expires_at, created_at FROM sessions WHERE id = $1
 `
 
-func (q *Queries) GetSession(ctx context.Context, id int32) (Session, error) {
+func (q *Queries) GetSession(ctx context.Context, id string) (Session, error) {
 	row := q.db.QueryRow(ctx, getSession, id)
 	var i Session
 	err := row.Scan(
@@ -393,7 +395,7 @@ const revokeSession = `-- name: RevokeSession :exec
 UPDATE sessions SET is_revoked = TRUE WHERE id = $1
 `
 
-func (q *Queries) RevokeSession(ctx context.Context, id int32) error {
+func (q *Queries) RevokeSession(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, revokeSession, id)
 	return err
 }

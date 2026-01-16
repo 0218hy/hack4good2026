@@ -9,8 +9,8 @@ import (
 
 type Service interface {
 	CreateSession(ctx context.Context, params CreateSessionParams) (*repo.Session, error)
-	GetSession(ctx context.Context, sessionID int32) (*repo.Session, error)
-	RevokeSession(ctx context.Context, sessionID int32) error
+	GetSession(ctx context.Context, sessionID string) (*repo.Session, error)
+	RevokeSession(ctx context.Context, sessionID string) error
 	DeleteSessionsByUserID(ctx context.Context, userID int32) error
 
 }
@@ -40,7 +40,7 @@ func (s *svc) CreateSession(ctx context.Context, params CreateSessionParams) (*r
 }
 
 // get session by ID
-func (s *svc) GetSession(ctx context.Context, sessionID int32) (*repo.Session, error) {
+func (s *svc) GetSession(ctx context.Context, sessionID string) (*repo.Session, error) {
 	session, err := s.repo.GetSession(ctx, sessionID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get session: %w", err)
@@ -49,7 +49,7 @@ func (s *svc) GetSession(ctx context.Context, sessionID int32) (*repo.Session, e
 }
 
 // revoke session
-func (s *svc) RevokeSession(ctx context.Context, sessionID int32) error {
+func (s *svc) RevokeSession(ctx context.Context, sessionID string) error {
 	if err := s.repo.RevokeSession(ctx, sessionID); err != nil {
 		return fmt.Errorf("failed to revoke session: %w", err)
 	}

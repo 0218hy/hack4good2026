@@ -17,13 +17,13 @@ type Querier interface {
 	DeleteUserByID(ctx context.Context, id int32) error
 	GetActivityByID(ctx context.Context, id int32) (int32, error)
 	GetAllUsers(ctx context.Context) ([]User, error)
-	GetSession(ctx context.Context, id int32) (Session, error)
+	GetSession(ctx context.Context, id string) (Session, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int32) (User, error)
 	GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAndPhoneParams) (GetUserByNameAndPhoneRow, error)
 	GetUserByPhone(ctx context.Context, phone string) (User, error)
 	ListActivities(ctx context.Context) ([]Activity, error)
-	RevokeSession(ctx context.Context, id int32) error
+	RevokeSession(ctx context.Context, id string) error
 }
 
 var _ Querier = (*Queries)(nil)

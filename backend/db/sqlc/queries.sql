@@ -11,11 +11,11 @@ INSERT INTO sessions (
     is_revoked,
     expires_at
 ) VALUES (
-    gen_random_uuid(),
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5
 )
 RETURNING *;
 
