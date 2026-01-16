@@ -7,6 +7,7 @@ import (
 	"hack4good-backend/internal/env"
 	"hack4good-backend/internal/users"
 	"hack4good-backend/internal/activities"
+
 	"log"
 	"net/http"
 	"time"
@@ -59,8 +60,8 @@ func (app *application) mount() http.Handler {
 	// For public
 	r.Post("api/login", authHandler.HandleLogin)
 
-	ActivityService := Activities.NewService(repo.New(app.db))
-	ActivityHandler := Activities.NewHandler(ActivityService)
+	ActivityService := activities.NewService(repo.New(app.db))
+	ActivityHandler := activities.NewHandler(ActivityService)
 	r. Get("/activities", ActivityHandler.ListActivities)
 
 	return r
