@@ -105,13 +105,8 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	default:
-<<<<<<< HEAD
-		storedPhone, ok := user.Phone.(string)
-		if !ok || storedPhone == "" {
-=======
 		storedPhone := user.Phone.(string)
 		if storedPhone == "" {
->>>>>>> e4813f95fc2478590f4b3cdd7cb8ffc6ec88b834
 			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return
 		}
