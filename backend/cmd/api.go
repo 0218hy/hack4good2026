@@ -3,6 +3,7 @@ package main
 import (
 	repo "hack4good-backend/db/sqlc"
 	"hack4good-backend/internal/auth"
+	"hack4good-backend/internal/env"
 	"hack4good-backend/internal/users"
 	"log"
 	"net/http"
@@ -26,15 +27,24 @@ func (app *application) mount() http.Handler {
 
 	r.Use(middleware.Timeout(60 * time.Second)) 
 
+	// secret key 
+	var secretKey = env.GetString("secretKey", "01234567890123456789012345678901") // 32 chars
+	if len(secretKey) < 32 {
+		log.Fatal("secretKey must be at least 32 characters long")
+	}
+
 	// health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("all good!\n"))
   	})
 
+	// create token maker
+	tokenMaker := auth.NewJWTMaker(secretKey)
+
 	// For users
 	userService := users.NewService(repo.New(app.db))
 	userHandler := users.NewHandler(userService)
-	// staff func
+	// For staff
 	r.Group(func(r chi.Router) {
         r.Use(auth.RequireRole(tokenMaker, "staff"))
         r.Post("/users", userHandler.CreateUser)      // Create user
