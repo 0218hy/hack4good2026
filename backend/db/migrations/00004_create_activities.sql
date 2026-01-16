@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS activities (
     created_by INTEGER NOT NULL REFERENCES users(id),
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
 -- +goose StatementEnd
 
 -- +goose Down

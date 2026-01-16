@@ -44,3 +44,5 @@
     ```DELETE FROM goose_db_version WHERE version_id = <version_number>```
 6. Verify current tables
     ```\dt```
+7. View specific table
+    ```\d table_name```
