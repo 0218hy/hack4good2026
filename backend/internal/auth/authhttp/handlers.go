@@ -86,16 +86,34 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get user info from DB
-	user, err := h.userService.GetUserByEmail(r.Context(), payload.Name)
+	user, err := h.userService.GetUserByEmail(r.Context(), payload.Email)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusBadRequest)
 		return
 	}
 
-	// compare the phone number with user info from DB
-	if !auth.CheckPhone(user.Phone, []byte(payload.Phone)) {
-		http.Error(w, "invalid credentials", http.StatusUnauthorized)
-		return
+	// role-based credential check 
+	switch user.Role {
+	case "staff":
+		storedPassword := user.Password.String
+		if storedPassword == "" {
+			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+			return
+		}
+		if !auth.CheckPassword(storedPassword, []byte(payload.Password)) {
+			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+			return
+		}
+	default:
+		storedPhone := user.Phone.String
+		if storedPhone == "" {
+			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+			return
+		}
+		if !auth.CheckPhone(storedPhone, []byte(payload.Phone)) {
+			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+			return
+		}
 	}
 
 	// create JWT token

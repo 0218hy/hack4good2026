@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS activities (
     date DATE NOT NULL,
     venue TEXT NOT NULL,
     description TEXT,
-    venue TEXT NOT NULL,
     start_time TIMESTAMP NOT NULL,
     end_time TIMESTAMP NOT NULL,
     signup_deadline TIMESTAMP NOT NULL,

@@ -3,6 +3,7 @@ package main
 import (
 	repo "hack4good-backend/db/sqlc"
 	"hack4good-backend/internal/auth"
+	"hack4good-backend/internal/auth/authhttp"
 	"hack4good-backend/internal/env"
 	"hack4good-backend/internal/users"
 	"log"
@@ -50,6 +51,13 @@ func (app *application) mount() http.Handler {
         r.Post("/users", userHandler.CreateUser)      // Create user
         r.Delete("/users/{id}", userHandler.DeleteUserByID) // Delete user
     })
+
+	// For auth
+	authService := authhttp.NewService(repo.New(app.db))
+	authHandler := authhttp.NewHandler(authService, userService, tokenMaker)
+	// For public
+	r.Post("api/login", authHandler.HandleLogin)
+
 
 	return r
 }

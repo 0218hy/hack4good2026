@@ -11,8 +11,9 @@ import (
 type Activity struct {
 	ID                    int32            `json:"id"`
 	Title                 string           `json:"title"`
-	Description           pgtype.Text      `json:"description"`
+	Date                  pgtype.Date      `json:"date"`
 	Venue                 string           `json:"venue"`
+	Description           pgtype.Text      `json:"description"`
 	StartTime             pgtype.Timestamp `json:"start_time"`
 	EndTime               pgtype.Timestamp `json:"end_time"`
 	SignupDeadline        pgtype.Timestamp `json:"signup_deadline"`
@@ -66,8 +67,9 @@ type Session struct {
 type User struct {
 	ID        int32            `json:"id"`
 	Name      string           `json:"name"`
-	Phone     string           `json:"phone"`
+	Phone     interface{}      `json:"phone"`
 	Email     string           `json:"email"`
+	Password  interface{}      `json:"password"`
 	Role      string           `json:"role"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
