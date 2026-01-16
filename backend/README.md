@@ -22,6 +22,16 @@
 # Running go
 ```go run cmd/*.go```
 
+# Creating posgtresql database
+1. Connect to default DB
+    ```psql -d postgres```
+2. Create user and database
+    ```CREATE USER h4g_user WITH PASSWORD 'h4g_password';```
+    ```CREATE DATABASE h4g OWNER h4g_user;```
+3. To exit
+    ```\q```
+
+
 
 # Updating my backend database
 1. Connect to PostgreSQL
@@ -36,3 +46,5 @@
     ```DELETE FROM goose_db_version WHERE version_id = <version_number>```
 6. Verify current tables
     ```\dt```
+7. View specific table
+    ```\d table_name```
