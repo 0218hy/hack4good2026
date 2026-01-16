@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS activities (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
-    description TEXT,
+    description sql.NullString,
     venue TEXT NOT NULL,
     start_time TIMESTAMP NOT NULL,
     end_time TIMESTAMP NOT NULL,

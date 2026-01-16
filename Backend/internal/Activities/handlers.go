@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
+
+	jsonutil "hack4good-backend/internal/json"
 
 	chi "github.com/go-chi/chi/v5"
-	jsonutil "github.com/hack4good2026/internal/json" 
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // GET /activities
@@ -39,9 +42,9 @@ type CreateActivity struct {
 	Title               string `json:"title"`
 	Description         string `json:"description"`
 	Venue               string `json:"venue"`
-	StartTime           string `json:"start_time"`     // RFC3339 format
-	EndTime             string `json:"end_time"`       // RFC3339 format
-	SignupDeadline      string `json:"signup_deadline"` // RFC3339 format
+	StartTime           pgtype.Timestamp `json:"start_time"`     // RFC3339 format
+	EndTime             pgtype.Timestamp `json:"end_time"`       // RFC3339 format
+	SignupDeadline      pgtype.Timestamp `json:"signup_deadline"` // RFC3339 format
 	ParticipantCapacity int    `json:"participant_capacity"`
 	VolunteerCapacity   int    `json:"volunteer_capacity"`
 }
@@ -71,59 +74,17 @@ func (h *GetActivity) CreateActivity(w http.ResponseWriter, r *http.Request) {
 	jsonutil.Write(w, http.StatusCreated, activity)
 }
 
-// PUT /activities/{id}
-type UpdateActivity struct {
-	Title               string `json:"title"`
-	Description         string `json:"description"`
-	Venue               string `json:"venue"`
-	StartTime           string `json:"start_time"`     // RFC3339 format
-	EndTime             string `json:"end_time"`       // RFC3339 format
-	SignupDeadline      string `json:"signup_deadline"` // RFC3339 format
-	ParticipantCapacity int    `json:"participant_capacity"`
-	VolunteerCapacity   int    `json:"volunteer_capacity"`
-}
-
-// method
-func (h *GetActivity) UpdateActivity(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		http.Error(w, "activity id is required", http.StatusBadRequest)
-		return
-	}
-
-	var req UpdateActivity
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// Validate required fields
-	if req.Title == "" || req.Venue == "" {
-		http.Error(w, "title and venue are required", http.StatusBadRequest)
-		return
-	}
-
-	// Call service to update activity
-	activity, err := h.service.UpdateActivity(r.Context(), id, req)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "failed to update activity", http.StatusInternalServerError)
-		return
-	}
-
-	jsonutil.Write(w, http.StatusOK, activity)
-}
-
 // DELETE /activities/{id}
 func (h *GetActivity) DeleteActivity(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" {
+	idStr := chi.URLParam(r, "id")
+    id, err := strconv.Atoi(idStr)
+	if err != nil {
 		http.Error(w, "activity id is required", http.StatusBadRequest)
 		return
 	}
 
 	// Call service to delete activity
-	err := h.service.DeleteActivity(r.Context(), id)
+	err = h.service.DeleteActivity(r.Context(), int32(id))
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "failed to delete activity", http.StatusInternalServerError)

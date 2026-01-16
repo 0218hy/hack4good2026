@@ -3,7 +3,7 @@ package bookings
 import (
 	"context"
 
-	repo "github.com/hack4good2026/internal/adapters/postgresql/sqlc"
+	repo "hack4good-backend/db/sqlc"
 )
 
 type Service interface {

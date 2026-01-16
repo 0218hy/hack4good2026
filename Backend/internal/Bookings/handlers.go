@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	chi "github.com/go-chi/chi/v5"
-	jsonutil "github.com/hack4good2026/internal/json" 
+	jsonutil "hack4good-backend/internal/json"
 )
 
 // GET /bookings

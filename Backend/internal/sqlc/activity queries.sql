@@ -31,3 +31,8 @@ RETURNING *;
 -- name: DeleteActivityByID :exec
 DELETE FROM activities
 WHERE id = $1;
+
+-- name: UpdateActivityByID :exec
+UPDATE activities
+SET status = $2
+WHERE id = $1;  

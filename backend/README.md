@@ -31,8 +31,6 @@
 3. To exit
     ```\q```
 
-
-
 # Updating my backend database
 1. Connect to PostgreSQL
     ```psql -h localhost -U h4g_user -d h4g```
