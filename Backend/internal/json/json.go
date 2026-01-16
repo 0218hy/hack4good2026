@@ -1,20 +1,17 @@
 package json
+//for you to create reusable json handler functions
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-// writeJSON writes JSON with status code.
-func writeJSON(w http.ResponseWriter, status int, v any) {
+//handler function reusable 
+//respond with json data 
+func Write(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
-}
-
-// writeErr standard error shape used by frontend.
-func writeErr(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, map[string]any{"error": msg})
+	json.NewEncoder(w).Encode(data)
 }
 
 func Read(r *http.Request, data any) error {

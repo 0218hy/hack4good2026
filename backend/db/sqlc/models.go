@@ -11,7 +11,7 @@ import (
 type Activity struct {
 	ID                    int32            `json:"id"`
 	Title                 string           `json:"title"`
-	Date                  pgtype.Date      `json:"date"`
+	Description           interface{}      `json:"description"`
 	Venue                 string           `json:"venue"`
 	Description           pgtype.Text      `json:"description"`
 	StartTime             pgtype.Timestamp `json:"start_time"`

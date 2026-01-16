@@ -4,16 +4,15 @@ import (
 	"context"
 
 	//repo: to be implemented
-	repo "github.com/hack4good2026/internal/adapters/postgresql/sqlc"
+	repo "hack4good-backend/db/sqlc"
 )
 
 // this file is for business logic (provide services)
-// method 
+// method
 type Service interface {
 	ListActivities(ctx context.Context) ([]repo.Activity, error)
 	CreateActivity(ctx context.Context, req CreateActivity) (repo.Activity, error)
-	UpdateActivity(ctx context.Context, id string, req UpdateActivity) (repo.Activity, error)
-	DeleteActivity(ctx context.Context, id string) error
+	DeleteActivity(ctx context.Context, id int32) error
 }
 
 // struct
@@ -32,13 +31,18 @@ func (s *svc) ListActivities(ctx context.Context) ([]repo.Activity, error) {
 }
 
 func (s *svc) CreateActivity(ctx context.Context, req CreateActivity) (repo.Activity, error) {
-	panic("unimplemented")
+	return s.repo.CreateActivity(ctx, repo.CreateActivityParams{
+		Title:               req.Title,
+		Description:         req.Description,
+		Venue:               req.Venue,
+		StartTime:           req.StartTime,
+		EndTime:             req.EndTime,
+		SignupDeadline:      req.SignupDeadline,
+		ParticipantCapacity: int32(req.ParticipantCapacity),
+		VolunteerCapacity:   int32(req.VolunteerCapacity),
+	})
 }
 
-func (s *svc) UpdateActivity(ctx context.Context, id string, req UpdateActivity) (repo.Activity, error) {
-	panic("unimplemented")
-}
-
-func (s *svc) DeleteActivity(ctx context.Context, id string) error {
-	panic("unimplemented")
+func (s *svc) DeleteActivity(ctx context.Context, id int32) error {
+	return s.repo.DeleteActivityByID(ctx, id)
 }

@@ -28,7 +28,7 @@ RETURNING id, title, date, venue, description, start_time, end_time, signup_dead
 
 type CreateActivityParams struct {
 	Title                 string           `json:"title"`
-	Description           pgtype.Text      `json:"description"`
+	Description           interface{}      `json:"description"`
 	Venue                 string           `json:"venue"`
 	StartTime             pgtype.Timestamp `json:"start_time"`
 	EndTime               pgtype.Timestamp `json:"end_time"`
@@ -78,6 +78,52 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 		&i.Status,
 		&i.CreatedBy,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createBooking = `-- name: CreateBooking :one
+INSERT INTO bookings (
+   id, activity_id, user_id, booked_for_user_id,
+   role, is_paid, attendance_status, created_at,
+   cancelled_at
+) VALUES (
+  gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), $7
+)
+RETURNING id, activity_id, user_id, booked_for_user_id, role, is_paid, attendance_status, created_at, cancelled_at
+`
+
+type CreateBookingParams struct {
+	ActivityID       int32            `json:"activity_id"`
+	UserID           int32            `json:"user_id"`
+	BookedForUserID  pgtype.Int4      `json:"booked_for_user_id"`
+	Role             string           `json:"role"`
+	IsPaid           bool             `json:"is_paid"`
+	AttendanceStatus pgtype.Text      `json:"attendance_status"`
+	CancelledAt      pgtype.Timestamp `json:"cancelled_at"`
+}
+
+func (q *Queries) CreateBooking(ctx context.Context, arg CreateBookingParams) (Booking, error) {
+	row := q.db.QueryRow(ctx, createBooking,
+		arg.ActivityID,
+		arg.UserID,
+		arg.BookedForUserID,
+		arg.Role,
+		arg.IsPaid,
+		arg.AttendanceStatus,
+		arg.CancelledAt,
+	)
+	var i Booking
+	err := row.Scan(
+		&i.ID,
+		&i.ActivityID,
+		&i.UserID,
+		&i.BookedForUserID,
+		&i.Role,
+		&i.IsPaid,
+		&i.AttendanceStatus,
+		&i.CreatedAt,
+		&i.CancelledAt,
 	)
 	return i, err
 }
@@ -176,6 +222,16 @@ func (q *Queries) DeleteActivityByID(ctx context.Context, id int32) error {
 	return err
 }
 
+const deleteBookingByID = `-- name: DeleteBookingByID :exec
+DELETE FROM bookings
+WHERE id = $1
+`
+
+func (q *Queries) DeleteBookingByID(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteBookingByID, id)
+	return err
+}
+
 const deleteSessionsByUserID = `-- name: DeleteSessionsByUserID :exec
 DELETE FROM sessions
 WHERE user_id = $1
@@ -198,17 +254,34 @@ func (q *Queries) DeleteUserByID(ctx context.Context, id int32) error {
 
 const getActivityByID = `-- name: GetActivityByID :one
 SELECT
-  id
+  id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
 FROM
   activities
 WHERE
   id = $1
 `
 
-func (q *Queries) GetActivityByID(ctx context.Context, id int32) (int32, error) {
+func (q *Queries) GetActivityByID(ctx context.Context, id int32) (Activity, error) {
 	row := q.db.QueryRow(ctx, getActivityByID, id)
-	err := row.Scan(&id)
-	return id, err
+	var i Activity
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Venue,
+		&i.StartTime,
+		&i.EndTime,
+		&i.SignupDeadline,
+		&i.ParticipantCapacity,
+		&i.VolunteerCapacity,
+		&i.WheelchairAccessible,
+		&i.SignLanguageAvailable,
+		&i.RequiresPayment,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
@@ -242,6 +315,32 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getBookingByID = `-- name: GetBookingByID :one
+SELECT
+  id, activity_id, user_id, booked_for_user_id, role, is_paid, attendance_status, created_at, cancelled_at
+FROM
+  bookings
+WHERE
+  id = $1
+`
+
+func (q *Queries) GetBookingByID(ctx context.Context, id int32) (Booking, error) {
+	row := q.db.QueryRow(ctx, getBookingByID, id)
+	var i Booking
+	err := row.Scan(
+		&i.ID,
+		&i.ActivityID,
+		&i.UserID,
+		&i.BookedForUserID,
+		&i.Role,
+		&i.IsPaid,
+		&i.AttendanceStatus,
+		&i.CreatedAt,
+		&i.CancelledAt,
+	)
+	return i, err
 }
 
 const getSession = `-- name: GetSession :one
@@ -398,6 +497,82 @@ func (q *Queries) ListActivities(ctx context.Context) ([]Activity, error) {
 	return items, nil
 }
 
+const listBookings = `-- name: ListBookings :many
+SELECT
+  id, activity_id, user_id, booked_for_user_id, role, is_paid, attendance_status, created_at, cancelled_at 
+FROM
+  bookings
+`
+
+func (q *Queries) ListBookings(ctx context.Context) ([]Booking, error) {
+	rows, err := q.db.Query(ctx, listBookings)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Booking
+	for rows.Next() {
+		var i Booking
+		if err := rows.Scan(
+			&i.ID,
+			&i.ActivityID,
+			&i.UserID,
+			&i.BookedForUserID,
+			&i.Role,
+			&i.IsPaid,
+			&i.AttendanceStatus,
+			&i.CreatedAt,
+			&i.CancelledAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBookingsByActivityID = `-- name: ListBookingsByActivityID :many
+SELECT
+  id, activity_id, user_id, booked_for_user_id, role, is_paid, attendance_status, created_at, cancelled_at
+FROM
+  bookings
+WHERE
+  activity_id = $1
+`
+
+func (q *Queries) ListBookingsByActivityID(ctx context.Context, activityID int32) ([]Booking, error) {
+	rows, err := q.db.Query(ctx, listBookingsByActivityID, activityID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Booking
+	for rows.Next() {
+		var i Booking
+		if err := rows.Scan(
+			&i.ID,
+			&i.ActivityID,
+			&i.UserID,
+			&i.BookedForUserID,
+			&i.Role,
+			&i.IsPaid,
+			&i.AttendanceStatus,
+			&i.CreatedAt,
+			&i.CancelledAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const revokeSession = `-- name: RevokeSession :exec
 UPDATE sessions SET is_revoked = TRUE WHERE id = $1
 `
@@ -405,4 +580,64 @@ UPDATE sessions SET is_revoked = TRUE WHERE id = $1
 func (q *Queries) RevokeSession(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, revokeSession, id)
 	return err
+}
+
+const updateActivityByID = `-- name: UpdateActivityByID :one
+UPDATE activities
+SET 
+  title = $1,
+  description = $2,
+  venue = $3,
+  start_time = $4,
+  end_time = $5,
+  signup_deadline = $6,
+  participant_capacity = $7,
+  volunteer_capacity = $8
+WHERE id = $9
+RETURNING id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
+`
+
+type UpdateActivityByIDParams struct {
+	Title               string           `json:"title"`
+	Description         interface{}      `json:"description"`
+	Venue               string           `json:"venue"`
+	StartTime           pgtype.Timestamp `json:"start_time"`
+	EndTime             pgtype.Timestamp `json:"end_time"`
+	SignupDeadline      pgtype.Timestamp `json:"signup_deadline"`
+	ParticipantCapacity int32            `json:"participant_capacity"`
+	VolunteerCapacity   int32            `json:"volunteer_capacity"`
+	ID                  int32            `json:"id"`
+}
+
+func (q *Queries) UpdateActivityByID(ctx context.Context, arg UpdateActivityByIDParams) (Activity, error) {
+	row := q.db.QueryRow(ctx, updateActivityByID,
+		arg.Title,
+		arg.Description,
+		arg.Venue,
+		arg.StartTime,
+		arg.EndTime,
+		arg.SignupDeadline,
+		arg.ParticipantCapacity,
+		arg.VolunteerCapacity,
+		arg.ID,
+	)
+	var i Activity
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Venue,
+		&i.StartTime,
+		&i.EndTime,
+		&i.SignupDeadline,
+		&i.ParticipantCapacity,
+		&i.VolunteerCapacity,
+		&i.WheelchairAccessible,
+		&i.SignLanguageAvailable,
+		&i.RequiresPayment,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+	)
+	return i, err
 }

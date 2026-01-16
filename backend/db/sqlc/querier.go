@@ -10,20 +10,26 @@ import (
 
 type Querier interface {
 	CreateActivity(ctx context.Context, arg CreateActivityParams) (Activity, error)
+	CreateBooking(ctx context.Context, arg CreateBookingParams) (Booking, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteActivityByID(ctx context.Context, id int32) error
+	DeleteBookingByID(ctx context.Context, id int32) error
 	DeleteSessionsByUserID(ctx context.Context, userID int32) error
 	DeleteUserByID(ctx context.Context, id int32) error
-	GetActivityByID(ctx context.Context, id int32) (int32, error)
+	GetActivityByID(ctx context.Context, id int32) (Activity, error)
 	GetAllUsers(ctx context.Context) ([]User, error)
+	GetBookingByID(ctx context.Context, id int32) (Booking, error)
 	GetSession(ctx context.Context, id string) (Session, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int32) (User, error)
 	GetUserByNameAndPhone(ctx context.Context, arg GetUserByNameAndPhoneParams) (GetUserByNameAndPhoneRow, error)
 	GetUserByPhone(ctx context.Context, phone interface{}) (User, error)
 	ListActivities(ctx context.Context) ([]Activity, error)
+	ListBookings(ctx context.Context) ([]Booking, error)
+	ListBookingsByActivityID(ctx context.Context, activityID int32) ([]Booking, error)
 	RevokeSession(ctx context.Context, id string) error
+	UpdateActivityByID(ctx context.Context, arg UpdateActivityByIDParams) (Activity, error)
 }
 
 var _ Querier = (*Queries)(nil)

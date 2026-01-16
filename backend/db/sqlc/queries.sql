@@ -29,38 +29,6 @@ UPDATE sessions SET is_revoked = TRUE WHERE id = $1;
 DELETE FROM sessions
 WHERE user_id = $1;
 
--- name: ListActivities :many
-SELECT
-  * 
-FROM
-  activities; 
-
--- name: GetActivityByID :one 
-SELECT
-  id
-FROM
-  activities
-WHERE
-  id = $1;
-
--- name: CreateActivity :one
-INSERT INTO activities (
-  id, title, description, venue, start_time, end_time,
-  signup_deadline, participant_capacity, volunteer_capacity,
-  wheelchair_accessible, sign_language_available, requires_payment,
-  status, created_by, created_at
-) VALUES (
-    gen_random_uuid(), $1, $2, $3, $4, $5,
-    $6, $7, $8,
-    $9, $10, $11,
-    $12, $13, $14
-)
-RETURNING *;
-
--- name: DeleteActivityByID :exec
-DELETE FROM activities
-WHERE id = $1;
-
 -- name: CreateUser :one
 INSERT INTO users (
     name,
@@ -91,5 +59,95 @@ ORDER BY created_at DESC;
 -- name: DeleteUserByID :exec
 DELETE FROM users
 WHERE id = $1;
+
+-- name: ListActivities :many
+SELECT
+  * 
+FROM
+  activities; 
+
+-- name: GetActivityByID :one 
+SELECT
+  *
+FROM
+  activities
+WHERE
+  id = $1;
+
+-- name: CreateActivity :one
+INSERT INTO activities (
+  id, title, description, venue, start_time, end_time,
+  signup_deadline, participant_capacity, volunteer_capacity,
+  wheelchair_accessible, sign_language_available, requires_payment,
+  status, created_by, created_at
+) VALUES (
+    gen_random_uuid(), $1, $2, $3, $4, $5,
+    $6, $7, $8,
+    $9, $10, $11,
+    $12, $13, $14
+)
+RETURNING *;
+
+-- name: DeleteActivityByID :exec
+DELETE FROM activities
+WHERE id = $1;
+
+-- name: UpdateActivityByID :one
+UPDATE activities
+SET 
+  title = $1,
+  description = $2,
+  venue = $3,
+  start_time = $4,
+  end_time = $5,
+  signup_deadline = $6,
+  participant_capacity = $7,
+  volunteer_capacity = $8
+WHERE id = $9
+RETURNING *;
+
+-- name: ListBookings :many
+SELECT
+  * 
+FROM
+  bookings; 
+
+-- name: GetBookingByID :one 
+SELECT
+  *
+FROM
+  bookings
+WHERE
+  id = $1;
+
+-- name: CreateBooking :one
+INSERT INTO bookings (
+   id, activity_id, user_id, booked_for_user_id,
+   role, is_paid, attendance_status, created_at,
+   cancelled_at
+) VALUES (
+  gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), $7
+)
+RETURNING *;
+
+-- name: DeleteBookingByID :exec
+DELETE FROM bookings
+WHERE id = $1;   
+
+-- name: ListBookingsByActivityID :many
+SELECT
+  *
+FROM
+  bookings
+WHERE
+  activity_id = $1;
+
+  -- name: countBookingsByActivityID :one
+SELECT
+  COUNT(*) as count
+FROM
+  bookings
+WHERE
+  activity_id = $1;
 
 
