@@ -121,7 +121,7 @@ export const mockActivities: Activity[] = [
     registeredVolunteersCount: 0,
     // Legacy calculated fields
     participantVacancy: 6,
-    volunteerVacancy: 0,
+    volunteerVacancy: 5,
     wheelchairAccessible: true,
     signLanguageSupport: false,
     paymentRequired: true,
@@ -148,7 +148,7 @@ export const mockActivities: Activity[] = [
     registeredVolunteersCount: 0,
     // Legacy calculated fields
     participantVacancy: 12,
-    volunteerVacancy: 1,
+    volunteerVacancy: 2,
     wheelchairAccessible: true,
     signLanguageSupport: true,
     paymentRequired: false,
@@ -227,7 +227,7 @@ export const mockActivities: Activity[] = [
     registeredVolunteersCount: 2,
     // Legacy calculated fields
     participantVacancy: 8,
-    volunteerVacancy: 0,
+    volunteerVacancy: 1,
     wheelchairAccessible: false,
     signLanguageSupport: false,
     paymentRequired: false,

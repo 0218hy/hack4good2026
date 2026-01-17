@@ -46,6 +46,14 @@ export function generateRecurringActivities(baseActivity: Activity): Activity[] 
         signupDeadline: deadlineStr,
         isRecurringInstance: true,
         parentActivityId: baseActivity.id,
+        // Reset registration counts for new instances with safe defaults
+        registeredParticipantsCount: 0,
+        registeredVolunteersCount: 0,
+        // Recalculate vacancy based on capacity with safe defaults
+        participantCapacity: baseActivity.participantCapacity || 0,
+        volunteerCapacity: baseActivity.volunteerCapacity || 0,
+        participantVacancy: baseActivity.participantCapacity || 0,
+        volunteerVacancy: baseActivity.volunteerCapacity || 0,
       };
 
       activities.push(recurringActivity);
