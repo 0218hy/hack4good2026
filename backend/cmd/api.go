@@ -70,7 +70,7 @@ func (app *application) mount() http.Handler {
 	authService := authhttp.NewService(repo.New(app.db))
 	authHandler := authhttp.NewHandler(authService, userService, tokenMaker)
 	// For public
-	r.Post("api/login", authHandler.HandleLogin)
+	r.Post("/api/login", authHandler.HandleLogin)
 
 	ActivityService := activities.NewService(repo.New(app.db))
 	ActivityHandler := activities.NewHandler(ActivityService)
