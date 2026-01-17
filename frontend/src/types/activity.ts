@@ -6,13 +6,27 @@ export interface Activity {
   venue: string;
   meetingVenue: string;
   description: string;
-  participantCapacity: number;
-  registeredParticipantsCount: number;
-  volunteerCapacity: number;
-  registeredVolunteersCount: number;
+  
+  // SINGLE SOURCE OF TRUTH FOR CAPACITY TRACKING
+  // =============================================
+  // Participant tracking (use ONLY these two fields):
+  participantCapacity: number;              // Total participant slots (set by staff)
+  registeredParticipantsCount: number;      // Current participant registrations
+  
+  // Volunteer tracking (use ONLY these two fields):
+  volunteerCapacity: number;                // Total volunteer slots (set by staff)
+  registeredVolunteersCount: number;        // Current volunteer signups
+  
+  // Vacancy calculation (COMPUTED, not stored):
+  // - participantVacancy = participantCapacity - registeredParticipantsCount
+  // - volunteerVacancy = volunteerCapacity - registeredVolunteersCount
+  // - isParticipantFull = participantVacancy <= 0
+  // - isVolunteerFull = volunteerVacancy <= 0
+  
   // Legacy fields for backward compatibility - these will be calculated
   participantVacancy: number;
   volunteerVacancy: number;
+  
   wheelchairAccessible: boolean;
   signLanguageSupport: boolean;
   paymentRequired: boolean;
