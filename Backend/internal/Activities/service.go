@@ -14,6 +14,7 @@ type Service interface {
 	CreateActivity(ctx context.Context, req CreateActivity) (repo.Activity, error)
 	DeleteActivity(ctx context.Context, id int32) error
 	UpdateActivity(ctx context.Context, id int32, req repo.UpdateActivityParams) (repo.Activity, error)
+	ListActivitiesWithCounts(ctx context.Context) ([]ActivityResponse, error)
 }
 
 // struct
@@ -61,3 +62,28 @@ func (s *svc) UpdateActivity(ctx context.Context, id int32, req repo.UpdateActiv
 		VolunteerCapacity:   int32(req.VolunteerCapacity),
 	})
 }	
+func (s *svc) ListActivitiesWithCounts(ctx context.Context) ([]ActivityResponse, error) {
+	rows, err := s.repo.ListActivitiesWithCounts(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]ActivityResponse, 0, len(rows))
+	for _, r := range rows {
+		res = append(res, ActivityResponse{
+			ID:                          int(r.ID),
+			Title:                       r.Title,
+			Description:                 r.Description.(string),
+			Venue:                       r.Venue,
+			StartTime:                   r.StartTime,
+			EndTime:                     r.EndTime,
+			SignupDeadline:              r.SignupDeadline,
+			ParticipantCapacity:         int(r.ParticipantCapacity),
+			VolunteerCapacity:           int(r.VolunteerCapacity),
+			RegisteredParticipantsCount: int(r.RegisteredParticipantsCount),
+		})
+	}
+
+	return res, nil
+}
+
