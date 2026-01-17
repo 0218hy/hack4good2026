@@ -100,3 +100,17 @@ func (h *Handler) DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 
     w.WriteHeader(http.StatusNoContent)
 }
+
+//Get Participants or Volunteers by role
+func (h *Handler) ListUsersByRole(role string) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        users, err := h.service.ListUsersByRole(r.Context(), role)
+        if err != nil {
+            log.Println(err)
+            http.Error(w, "failed to list users", http.StatusInternalServerError)
+            return
+        }
+
+        json.Write(w, http.StatusOK, users)
+    }
+}
