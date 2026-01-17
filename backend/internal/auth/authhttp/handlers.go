@@ -84,6 +84,12 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("LOGIN PAYLOAD: %+v\n", payload)
+
+	if payload.Email == "" {
+		http.Error(w, "email required", http.StatusBadRequest)
+		return
+	}
 
 	// get user info from DB
 	user, err := h.userService.GetUserByEmail(r.Context(), payload.Email)
@@ -95,21 +101,23 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// role-based credential check 
 	switch user.Role {
 	case "staff":
-		storedPassword := user.Password.(string)
-		if storedPassword == "" {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+		if payload.Password == "" {
+			http.Error(w, "password required", http.StatusUnauthorized)
 			return
 		}
+
+		storedPassword := user.Password.(string)
 		if !auth.CheckPassword(storedPassword, []byte(payload.Password)) {
 			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return
 		}
 	default:
-		storedPhone := user.Phone.(string)
-		if storedPhone == "" {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+		if payload.Phone == "" {
+			http.Error(w, "phone required", http.StatusUnauthorized)
 			return
 		}
+
+		storedPhone := user.Phone.(string)
 		if !auth.CheckPhone(storedPhone, []byte(payload.Phone)) {
 			http.Error(w, "invalid credentials", http.StatusUnauthorized)
 			return

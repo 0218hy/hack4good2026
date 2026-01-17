@@ -2,6 +2,7 @@ package main
 
 import (
 	repo "hack4good-backend/db/sqlc"
+	"hack4good-backend/internal/activities"
 	"hack4good-backend/internal/auth"
 	"hack4good-backend/internal/auth/authhttp"
 	"hack4good-backend/internal/env"
@@ -17,8 +18,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/go-chi/cors"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // mount
@@ -27,14 +28,14 @@ func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
 	// A good base middleware stack (from chi documentation)
-	r.Use(middleware.RequestID) 
-	r.Use(middleware.RealIP) 
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Use(middleware.Timeout(60 * time.Second)) 
+	r.Use(middleware.Timeout(60 * time.Second))
 
-	// secret key 
+	// secret key
 	var secretKey = env.GetString("secretKey", "01234567890123456789012345678901") // 32 chars
 	if len(secretKey) < 32 {
 		log.Fatal("secretKey must be at least 32 characters long")
@@ -43,12 +44,11 @@ func (app *application) mount() http.Handler {
 	// health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("all good!\n"))
-  	})
+	})
 
 	// create token maker
 	tokenMaker := auth.NewJWTMaker(secretKey)
 
-	
 	// CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
@@ -56,8 +56,6 @@ func (app *application) mount() http.Handler {
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
 	})
-	
-
 
 	// For users
 	userService := users.NewService(repo.New(app.db))
@@ -102,14 +100,14 @@ func (app *application) mount() http.Handler {
 	return c.Handler(r)
 }
 
-//run
+// run
 func (app *application) run(h http.Handler) error {
 	srv := &http.Server{
-		Addr:    app.config.addr,
-		Handler: h,
+		Addr:         app.config.addr,
+		Handler:      h,
 		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second, 	
-		IdleTimeout: time.Minute, 
+		ReadTimeout:  15 * time.Second,
+		IdleTimeout:  time.Minute,
 	}
 
 	log.Printf("Starting server on %s", app.config.addr)
@@ -120,7 +118,7 @@ func (app *application) run(h http.Handler) error {
 type application struct {
 	config config
 	// logger
-	db    *pgxpool.Pool
+	db *pgxpool.Pool
 }
 
 type config struct {
