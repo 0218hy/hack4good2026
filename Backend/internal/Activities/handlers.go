@@ -8,7 +8,6 @@ import (
 
 
 	chi "github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"hack4good-backend/internal/json"
 )
 
@@ -35,19 +34,6 @@ func (h *GetActivity) ListActivities(w http.ResponseWriter, r *http.Request) {
 	json.Write(w, http.StatusOK, activities) //rewrote reusable handler 
 	//return json from http handler 
 } 
-
-
-// POST /activities (create new activity)
-type CreateActivity struct {
-	Title               string `json:"title"`
-	Description         string `json:"description"`
-	Venue               string `json:"venue"`
-	StartTime           pgtype.Timestamp `json:"start_time"`     // RFC3339 format
-	EndTime             pgtype.Timestamp `json:"end_time"`       // RFC3339 format
-	SignupDeadline      pgtype.Timestamp `json:"signup_deadline"` // RFC3339 format
-	ParticipantCapacity int    `json:"participant_capacity"`
-	VolunteerCapacity   int    `json:"volunteer_capacity"`
-}
 
 // method
 func (h *GetActivity) CreateActivity(w http.ResponseWriter, r *http.Request) {
@@ -92,4 +78,14 @@ func (h *GetActivity) DeleteActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *GetActivity) ListActivitiesWithCounts(w http.ResponseWriter, r *http.Request) {
+    activities, err := h.service.ListActivitiesWithCounts(r.Context())
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    json.Write(w, http.StatusOK, activities)
 }
