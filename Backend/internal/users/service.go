@@ -8,6 +8,7 @@ import (
 type Service interface {
 	GetUserByID(ctx context.Context, userID int32) (repo.User, error)
 	GetUserByEmail(ctx context.Context, email string) (repo.User, error)
+	ListUsersByRole(ctx context.Context, role string) ([]repo.User, error)
 	GetUserByPhone (ctx context.Context, phone string) (repo.User, error)
 	DeleteUserByID (ctx context.Context, id int32) (error)
 	CreateUser (ctx context.Context, param CreateUserParams) (repo.User, error)
@@ -51,4 +52,8 @@ func (s *svc) CreateUser (ctx context.Context, param CreateUserParams) (repo.Use
 	}
 
 	return user, nil
+}
+
+func (s *svc) ListUsersByRole(ctx context.Context, role string) ([]repo.User, error) {
+	return s.repo.ListUsersByRole(ctx, role)
 }

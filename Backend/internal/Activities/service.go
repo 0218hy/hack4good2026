@@ -13,6 +13,7 @@ type Service interface {
 	ListActivities(ctx context.Context) ([]repo.Activity, error)
 	CreateActivity(ctx context.Context, req CreateActivity) (repo.Activity, error)
 	DeleteActivity(ctx context.Context, id int32) error
+	UpdateActivity(ctx context.Context, id int32, req repo.UpdateActivityParams) (repo.Activity, error)
 }
 
 // struct
@@ -46,3 +47,17 @@ func (s *svc) CreateActivity(ctx context.Context, req CreateActivity) (repo.Acti
 func (s *svc) DeleteActivity(ctx context.Context, id int32) error {
 	return s.repo.DeleteActivityByID(ctx, id)
 }
+
+func (s *svc) UpdateActivity(ctx context.Context, id int32, req repo.UpdateActivityParams) (repo.Activity, error) {
+	return s.repo.UpdateActivity(ctx, repo.UpdateActivityParams{
+		ID:                  id,
+		Title:               req.Title,
+		Description:         req.Description,
+		Venue:               req.Venue,
+		StartTime:           req.StartTime,
+		EndTime:             req.EndTime,
+		SignupDeadline:      req.SignupDeadline,
+		ParticipantCapacity: int32(req.ParticipantCapacity),
+		VolunteerCapacity:   int32(req.VolunteerCapacity),
+	})
+}	

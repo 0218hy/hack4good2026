@@ -11,6 +11,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countBookingsByActivityID = `-- name: CountBookingsByActivityID :one
+SELECT 
+  COUNT(*)::bigint
+FROM 
+  bookings
+WHERE 
+  activity_id = $1
+`
+
+func (q *Queries) CountBookingsByActivityID(ctx context.Context, activityID int32) (int64, error) {
+	row := q.db.QueryRow(ctx, countBookingsByActivityID, activityID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createActivity = `-- name: CreateActivity :one
 INSERT INTO activities (
   id, title, description, venue, start_time, end_time,
@@ -571,6 +587,43 @@ func (q *Queries) ListBookingsByActivityID(ctx context.Context, activityID int32
 	return items, nil
 }
 
+const listUsersByRole = `-- name: ListUsersByRole :many
+SELECT
+  id, name, phone, email, password, role, created_at
+FROM
+  users
+WHERE
+  role = $1
+`
+
+func (q *Queries) ListUsersByRole(ctx context.Context, role string) ([]User, error) {
+	rows, err := q.db.Query(ctx, listUsersByRole, role)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Phone,
+			&i.Email,
+			&i.Password,
+			&i.Role,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const revokeSession = `-- name: RevokeSession :exec
 UPDATE sessions SET is_revoked = TRUE WHERE id = $1
 `
@@ -578,6 +631,66 @@ UPDATE sessions SET is_revoked = TRUE WHERE id = $1
 func (q *Queries) RevokeSession(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, revokeSession, id)
 	return err
+}
+
+const updateActivity = `-- name: UpdateActivity :one
+UPDATE activities
+SET 
+  title = $1,
+  description = $2,
+  venue = $3,
+  start_time = $4,
+  end_time = $5,
+  signup_deadline = $6,
+  participant_capacity = $7,
+  volunteer_capacity = $8
+WHERE id = $9
+RETURNING id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
+`
+
+type UpdateActivityParams struct {
+	Title               string           `json:"title"`
+	Description         interface{}      `json:"description"`
+	Venue               string           `json:"venue"`
+	StartTime           pgtype.Timestamp `json:"start_time"`
+	EndTime             pgtype.Timestamp `json:"end_time"`
+	SignupDeadline      pgtype.Timestamp `json:"signup_deadline"`
+	ParticipantCapacity int32            `json:"participant_capacity"`
+	VolunteerCapacity   int32            `json:"volunteer_capacity"`
+	ID                  int32            `json:"id"`
+}
+
+func (q *Queries) UpdateActivity(ctx context.Context, arg UpdateActivityParams) (Activity, error) {
+	row := q.db.QueryRow(ctx, updateActivity,
+		arg.Title,
+		arg.Description,
+		arg.Venue,
+		arg.StartTime,
+		arg.EndTime,
+		arg.SignupDeadline,
+		arg.ParticipantCapacity,
+		arg.VolunteerCapacity,
+		arg.ID,
+	)
+	var i Activity
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Venue,
+		&i.StartTime,
+		&i.EndTime,
+		&i.SignupDeadline,
+		&i.ParticipantCapacity,
+		&i.VolunteerCapacity,
+		&i.WheelchairAccessible,
+		&i.SignLanguageAvailable,
+		&i.RequiresPayment,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const updateActivityByID = `-- name: UpdateActivityByID :one
@@ -636,6 +749,57 @@ func (q *Queries) UpdateActivityByID(ctx context.Context, arg UpdateActivityByID
 		&i.Status,
 		&i.CreatedBy,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateBooking = `-- name: UpdateBooking :one
+UPDATE bookings
+SET 
+  activity_id = $1,
+  user_id = $2,
+  booked_for_user_id = $3,
+  role = $4,
+  is_paid = $5,
+  attendance_status = $6,
+  cancelled_at = $7
+WHERE id = $8
+RETURNING id, activity_id, user_id, booked_for_user_id, role, is_paid, attendance_status, created_at, cancelled_at
+`
+
+type UpdateBookingParams struct {
+	ActivityID       int32            `json:"activity_id"`
+	UserID           int32            `json:"user_id"`
+	BookedForUserID  pgtype.Int4      `json:"booked_for_user_id"`
+	Role             string           `json:"role"`
+	IsPaid           bool             `json:"is_paid"`
+	AttendanceStatus pgtype.Text      `json:"attendance_status"`
+	CancelledAt      pgtype.Timestamp `json:"cancelled_at"`
+	ID               int32            `json:"id"`
+}
+
+func (q *Queries) UpdateBooking(ctx context.Context, arg UpdateBookingParams) (Booking, error) {
+	row := q.db.QueryRow(ctx, updateBooking,
+		arg.ActivityID,
+		arg.UserID,
+		arg.BookedForUserID,
+		arg.Role,
+		arg.IsPaid,
+		arg.AttendanceStatus,
+		arg.CancelledAt,
+		arg.ID,
+	)
+	var i Booking
+	err := row.Scan(
+		&i.ID,
+		&i.ActivityID,
+		&i.UserID,
+		&i.BookedForUserID,
+		&i.Role,
+		&i.IsPaid,
+		&i.AttendanceStatus,
+		&i.CreatedAt,
+		&i.CancelledAt,
 	)
 	return i, err
 }

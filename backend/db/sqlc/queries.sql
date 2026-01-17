@@ -142,12 +142,45 @@ FROM
 WHERE
   activity_id = $1;
 
-  -- name: countBookingsByActivityID :one
-SELECT
-  COUNT(*) as count
-FROM
+-- name: CountBookingsByActivityID :one
+SELECT 
+  COUNT(*)::bigint
+FROM 
   bookings
-WHERE
+WHERE 
   activity_id = $1;
 
+-- name: ListUsersByRole :many
+SELECT
+  *
+FROM
+  users
+WHERE
+  role = $1;
 
+-- name: UpdateActivity :one
+UPDATE activities
+SET 
+  title = $1,
+  description = $2,
+  venue = $3,
+  start_time = $4,
+  end_time = $5,
+  signup_deadline = $6,
+  participant_capacity = $7,
+  volunteer_capacity = $8
+WHERE id = $9
+RETURNING *;
+
+-- name: UpdateBooking :one 
+UPDATE bookings
+SET 
+  activity_id = $1,
+  user_id = $2,
+  booked_for_user_id = $3,
+  role = $4,
+  is_paid = $5,
+  attendance_status = $6,
+  cancelled_at = $7
+WHERE id = $8
+RETURNING *;

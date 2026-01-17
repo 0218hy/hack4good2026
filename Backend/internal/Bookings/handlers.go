@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"sync"
 
-	chi "github.com/go-chi/chi/v5"
+	repo "hack4good-backend/db/sqlc"
 	jsonutil "hack4good-backend/internal/json"
+
+	chi "github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// GET /bookings
+// ListBookings
 type GetBooking struct {
 	service    Service
 	countsMu   sync.RWMutex
@@ -39,9 +42,9 @@ func (h *GetBooking) ListBookings(w http.ResponseWriter, r *http.Request) {
 
 // POST /bookings (create new booking)
 type CreateBooking struct {
-	ActivityID      string `json:"activity_id"`
-	UserID          string `json:"user_id"`
-	BookedForUserID string `json:"booked_for_user_id"`
+	ActivityID      int32 `json:"activity_id"`
+	UserID          int32    `json:"user_id"`
+	BookedForUserID pgtype.Int4     `json:"booked_for_user_id"`
 	Role            string `json:"role"` // participant or volunteer
 	IsPaid          bool   `json:"is_paid"`
 }
@@ -65,7 +68,7 @@ func (h *GetBooking) CreateBooking(w http.ResponseWriter, r *http.Request) {
 }
 
 // DELETE /bookings/{id}
-func (h *GetBooking) DeleteBooking(w http.ResponseWriter, r *http.Request) {
+func (h *GetBooking) DeleteBookingByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "booking id is required", http.StatusBadRequest)
@@ -73,7 +76,7 @@ func (h *GetBooking) DeleteBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service to delete booking
-	err := h.service.DeleteBooking(r.Context(), id)
+	err := h.service.DeleteBookingByID(r.Context(), id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "failed to delete booking", http.StatusInternalServerError)
@@ -127,6 +130,38 @@ func (h *GetBooking) CountBookingsByActivityID(w http.ResponseWriter, r *http.Re
 	h.countsMu.RUnlock()
 
 	jsonutil.Write(w, http.StatusOK, map[string]int64{"count": cached})
+}
+
+//PATCH /bookings/{id}
+func (h *GetBooking) UpdateBooking(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "booking id is required", http.StatusBadRequest)
+		return
+	}
+
+	var req CreateBooking
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Call service to update booking
+	booking, err := h.service.UpdateBooking(r.Context(), id, repo.UpdateBookingParams{
+		ActivityID:      req.ActivityID,
+		UserID:          req.UserID,
+		BookedForUserID: req.BookedForUserID,
+		Role:            req.Role,
+		IsPaid:          req.IsPaid,
+	})
+
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "failed to update booking", http.StatusInternalServerError)
+		return
+	}
+
+	jsonutil.Write(w, http.StatusOK, booking)
 }
 
 

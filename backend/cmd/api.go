@@ -7,6 +7,9 @@ import (
 	"hack4good-backend/internal/env"
 	"hack4good-backend/internal/users"
 	"hack4good-backend/internal/activities"
+	"hack4good-backend/internal/bookings"
+	
+
 
 	"log"
 	"net/http"
@@ -59,22 +62,41 @@ func (app *application) mount() http.Handler {
 	// For users
 	userService := users.NewService(repo.New(app.db))
 	userHandler := users.NewHandler(userService)
+	ActivityService := activities.NewService(repo.New(app.db))
+	ActivityHandler := activities.NewHandler(ActivityService)
+	BookingService := bookings.NewService(repo.New(app.db))
+	BookingHandler := bookings.NewHandler(BookingService)
+
 	// For staff
 	r.Group(func(r chi.Router) {
         r.Use(auth.RequireRole(tokenMaker, "staff"))
-        r.Post("/users", userHandler.CreateUser)      // Create user
-        r.Delete("/users/{id}", userHandler.DeleteUserByID) // Delete user
+        r.Post("/dashboard/createusers", userHandler.CreateUser)      // Create user(Register)
+        r.Delete("/dashboard/users/{id}", userHandler.DeleteUserByID) // Delete user
+
+		r.Get("/dashboard/activities", ActivityHandler.ListActivities) //List activities
+		r.Post("/dashboard/activities", ActivityHandler.CreateActivity) // Create activity
+		r.Delete("/dashboard/activities/{id}", ActivityHandler.DeleteActivity) // Delete activity
+		r.Patch("/dashboard/activities/{id}", ActivityHandler.UpdateActivity) // Update activity
+
+		r.Get("/dashboard/participants", userHandler.ListUsersByRole("participant")) //List Participants (all)
+		r.Get("/dashboard/volunteers", userHandler.ListUsersByRole("volunteer")) //List Volunteers (all) 
     })
 
 	// For auth
 	authService := authhttp.NewService(repo.New(app.db))
 	authHandler := authhttp.NewHandler(authService, userService, tokenMaker)
-	// For public
-	r.Post("api/login", authHandler.HandleLogin)
 
-	ActivityService := activities.NewService(repo.New(app.db))
-	ActivityHandler := activities.NewHandler(ActivityService)
-	r. Get("/activities", ActivityHandler.ListActivities)
+	// For public (participants & volunteers dashboard) 
+	r.Group(func(r chi.Router) {
+		r.Post("/api/login", authHandler.HandleLogin) //Login
+
+		r.Get("/dashboard/user/activities", ActivityHandler.ListActivities) //List activities
+		r.Get("/user/bookings", BookingHandler.ListBookings) //List users bookings
+		r.Post("/user/bookings", BookingHandler.CreateBooking) //Create booking
+		r.Delete("/user/bookings/{id}", BookingHandler.DeleteBooking) //Delete booking
+		r.Patch("/user/bookings/{id}", BookingHandler.UpdateBooking) //Update booking 
+	
+	}) 
 
 	// Wrap with CORS
 	return c.Handler(r)

@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
-
+	repo "hack4good-backend/db/sqlc"
+	"hack4good-backend/internal/json"
 
 	chi "github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"hack4good-backend/internal/json"
 )
 
 // GET /activities
@@ -42,9 +42,9 @@ type CreateActivity struct {
 	Title               string `json:"title"`
 	Description         string `json:"description"`
 	Venue               string `json:"venue"`
-	StartTime           pgtype.Timestamp `json:"start_time"`     // RFC3339 format
-	EndTime             pgtype.Timestamp `json:"end_time"`       // RFC3339 format
-	SignupDeadline      pgtype.Timestamp `json:"signup_deadline"` // RFC3339 format
+	StartTime           pgtype.Timestamp `json:"start_time"` 
+	EndTime             pgtype.Timestamp `json:"end_time"`       
+	SignupDeadline      pgtype.Timestamp `json:"signup_deadline"` 
 	ParticipantCapacity int    `json:"participant_capacity"`
 	VolunteerCapacity   int    `json:"volunteer_capacity"`
 }
@@ -92,4 +92,39 @@ func (h *GetActivity) DeleteActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// PATCH /activities/{id}
+func (h *GetActivity) UpdateActivity(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "activity id is required", http.StatusBadRequest)
+		return
+	}
+
+	var req repo.UpdateActivityParams
+	if err := json.Read(r, &req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Call service to update activity
+	activity, err := h.service.UpdateActivity(r.Context(), int32(id), repo.UpdateActivityParams{
+		Title:               req.Title,
+		Description:         req.Description,
+		Venue:               req.Venue,
+		StartTime:           req.StartTime,
+		EndTime:             req.EndTime,
+		SignupDeadline:      req.SignupDeadline,
+		ParticipantCapacity: int32(req.ParticipantCapacity),
+		VolunteerCapacity:   int32(req.VolunteerCapacity),
+	})
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "failed to update activity", http.StatusInternalServerError)
+		return
+	}
+
+	json.Write(w, http.StatusOK, activity)
 }

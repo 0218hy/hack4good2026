@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CountBookingsByActivityID(ctx context.Context, activityID int32) (int64, error)
 	CreateActivity(ctx context.Context, arg CreateActivityParams) (Activity, error)
 	CreateBooking(ctx context.Context, arg CreateBookingParams) (Booking, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
@@ -28,8 +29,11 @@ type Querier interface {
 	ListActivities(ctx context.Context) ([]Activity, error)
 	ListBookings(ctx context.Context) ([]Booking, error)
 	ListBookingsByActivityID(ctx context.Context, activityID int32) ([]Booking, error)
+	ListUsersByRole(ctx context.Context, role string) ([]User, error)
 	RevokeSession(ctx context.Context, id string) error
+	UpdateActivity(ctx context.Context, arg UpdateActivityParams) (Activity, error)
 	UpdateActivityByID(ctx context.Context, arg UpdateActivityByIDParams) (Activity, error)
+	UpdateBooking(ctx context.Context, arg UpdateBookingParams) (Booking, error)
 }
 
 var _ Querier = (*Queries)(nil)
