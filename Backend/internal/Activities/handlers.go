@@ -1,15 +1,15 @@
 package activities
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 
-	jsonutil "hack4good-backend/internal/json"
+
 
 	chi "github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"hack4good-backend/internal/json"
 )
 
 // GET /activities
@@ -32,7 +32,7 @@ func (h *GetActivity) ListActivities(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonutil.Write(w, http.StatusOK, activities) //rewrote reusable handler 
+	json.Write(w, http.StatusOK, activities) //rewrote reusable handler 
 	//return json from http handler 
 } 
 
@@ -52,7 +52,7 @@ type CreateActivity struct {
 // method
 func (h *GetActivity) CreateActivity(w http.ResponseWriter, r *http.Request) {
 	var req CreateActivity
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.Read(r,&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -71,7 +71,7 @@ func (h *GetActivity) CreateActivity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonutil.Write(w, http.StatusCreated, activity)
+	json.Write(w, http.StatusCreated, activity)
 }
 
 // DELETE /activities/{id}

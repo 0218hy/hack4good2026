@@ -7,6 +7,8 @@ require (
 	github.com/jackc/pgx/v5 v5.8.0
 )
 
+require github.com/go-chi/cors v1.2.2 // indirect
+
 require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0

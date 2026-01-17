@@ -28,7 +28,7 @@ export default function LandingPage() {
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link
-              to="/login"
+              to="/api/login"
               className="bg-sky-500 text-white px-12 py-5 rounded-xl text-xl font-semibold hover:bg-sky-600 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Log In

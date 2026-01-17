@@ -23,7 +23,7 @@ INSERT INTO activities (
     $9, $10, $11,
     $12, $13, $14
 )
-RETURNING id, title, date, venue, description, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
+RETURNING id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at
 `
 
 type CreateActivityParams struct {
@@ -64,9 +64,8 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
-		&i.Date,
-		&i.Venue,
 		&i.Description,
+		&i.Venue,
 		&i.StartTime,
 		&i.EndTime,
 		&i.SignupDeadline,
@@ -455,7 +454,7 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone interface{}) (User, 
 
 const listActivities = `-- name: ListActivities :many
 SELECT
-  id, title, date, venue, description, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at 
+  id, title, description, venue, start_time, end_time, signup_deadline, participant_capacity, volunteer_capacity, wheelchair_accessible, sign_language_available, requires_payment, status, created_by, created_at 
 FROM
   activities
 `
@@ -472,9 +471,8 @@ func (q *Queries) ListActivities(ctx context.Context) ([]Activity, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
-			&i.Date,
-			&i.Venue,
 			&i.Description,
+			&i.Venue,
 			&i.StartTime,
 			&i.EndTime,
 			&i.SignupDeadline,

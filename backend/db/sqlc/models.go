@@ -13,7 +13,6 @@ type Activity struct {
 	Title                 string           `json:"title"`
 	Description           interface{}      `json:"description"`
 	Venue                 string           `json:"venue"`
-	Description           pgtype.Text      `json:"description"`
 	StartTime             pgtype.Timestamp `json:"start_time"`
 	EndTime               pgtype.Timestamp `json:"end_time"`
 	SignupDeadline        pgtype.Timestamp `json:"signup_deadline"`

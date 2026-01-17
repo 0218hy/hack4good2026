@@ -1,13 +1,10 @@
 package json
-//for you to create reusable json handler functions
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-//handler function reusable 
-//respond with json data 
 func Write(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -15,8 +12,8 @@ func Write(w http.ResponseWriter, status int, data any) {
 }
 
 func Read(r *http.Request, data any) error {
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-
-	return decoder.Decode(data)
+	decode := json.NewDecoder(r.Body)
+	decode.DisallowUnknownFields() // to avoid silent errors and prevent malicious input
+	return decode.Decode(data)
 }
+
