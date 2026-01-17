@@ -70,8 +70,8 @@ func (app *application) mount() http.Handler {
 	r.Post("/api/login", authHandler.HandleLogin)
 
 	ActivityService := activities.NewService(repo.New(app.db))
-	ActivityHandler := activities.NewHandler(ActivityService)
-	r.Get("/activities", ActivityHandler.ListActivities)
+	activityHandler := activities.NewHandler(ActivityService)
+	r.Get("/api/activities", activityHandler.ListActivities)
 
 	// Wrap with CORS
 	return c.Handler(r)

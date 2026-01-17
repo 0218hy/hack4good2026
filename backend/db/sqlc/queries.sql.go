@@ -495,6 +495,68 @@ func (q *Queries) ListActivities(ctx context.Context) ([]Activity, error) {
 	return items, nil
 }
 
+const listActivitiesWithCounts = `-- name: ListActivitiesWithCounts :many
+SELECT
+  a.id,
+  a.title,
+  a.description,
+  a.venue,
+  a.start_time,
+  a.end_time,
+  a.signup_deadline,
+  a.participant_capacity,
+  a.volunteer_capacity,
+  COUNT(b.id) AS registered_participants_count
+FROM activities a
+LEFT JOIN bookings b
+  ON b.activity_id = a.id
+  AND b.role = 'participant'
+`
+
+type ListActivitiesWithCountsRow struct {
+	ID                          int32            `json:"id"`
+	Title                       string           `json:"title"`
+	Description                 interface{}      `json:"description"`
+	Venue                       string           `json:"venue"`
+	StartTime                   pgtype.Timestamp `json:"start_time"`
+	EndTime                     pgtype.Timestamp `json:"end_time"`
+	SignupDeadline              pgtype.Timestamp `json:"signup_deadline"`
+	ParticipantCapacity         int32            `json:"participant_capacity"`
+	VolunteerCapacity           int32            `json:"volunteer_capacity"`
+	RegisteredParticipantsCount int64            `json:"registered_participants_count"`
+}
+
+func (q *Queries) ListActivitiesWithCounts(ctx context.Context) ([]ListActivitiesWithCountsRow, error) {
+	rows, err := q.db.Query(ctx, listActivitiesWithCounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActivitiesWithCountsRow
+	for rows.Next() {
+		var i ListActivitiesWithCountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Venue,
+			&i.StartTime,
+			&i.EndTime,
+			&i.SignupDeadline,
+			&i.ParticipantCapacity,
+			&i.VolunteerCapacity,
+			&i.RegisteredParticipantsCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBookings = `-- name: ListBookings :many
 SELECT
   id, activity_id, user_id, booked_for_user_id, role, is_paid, attendance_status, created_at, cancelled_at 
