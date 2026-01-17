@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import logo from 'figma:asset/31aafb7be209c41dd63a586051c18a4a58b4f123.png';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -11,31 +10,31 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'participant' | 'caregiver' | 'volunteer' | 'staff'>('participant');
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      const payload: any = {email};
-      if (role == 'staff') {
-        payload.password = password;
-      } else {
-        payload.phone = phone;
-      }
+  //   try {
+  //     const payload: any = {email};
+  //     if (role == 'staff') {
+  //       payload.password = password;
+  //     } else {
+  //       payload.phone = phone;
+  //     }
 
-      console.log(payload);
+  //     console.log(payload);
 
-      const response = await axios.post('http://localhost:8080/api/login', payload, {
-        headers: {'Content-Type': 'application/json'},
-        withCredentials: true,
-      })
+  //     const response = await axios.post('http://localhost:8080/api/login', payload, {
+  //       headers: {'Content-Type': 'application/json'},
+  //       withCredentials: true,
+  //     })
 
-      const {token} = response.data;
-      localStorage.setItem('authToken', token);
+  //     const {token} = response.data;
+  //     localStorage.setItem('authToken', token);
 
       navigate('/dashboard/${role}');
-    } catch (error: any) {
-      alert(error.response?.data?.message ||'Login failed. Please check your credentials.');
-    }
+    // } catch (error: any) {
+    //   alert(error.response?.data?.message ||'Login failed. Please check your credentials.');
+    // }
   };
 
   return (
@@ -43,7 +42,7 @@ export default function LoginPage() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Activity Hub Logo" className="h-10" />
+            <img src={"/minds_logo.png"} alt="Activity Hub Logo" className="h-10" />
             <span className="text-3xl font-bold text-gray-900">Activity Hub</span>
           </div>
         </div>
