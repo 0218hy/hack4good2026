@@ -45,7 +45,7 @@ A responsive, accessible web application for booking and managing charity activi
 - **Capacity Indicators**: Real-time vacancy information
 - **Status Badges**: Clear OPEN/FULL/CLOSED status indicators
 
-## 🛠 Tech Stack
+## Tech Stack
 - **Frontend Framework**: React with TypeScript
 - **Backend Framework**: Go lang with go-chi, postgreSQL, sqlc
 
@@ -92,7 +92,7 @@ A responsive, accessible web application for booking and managing charity activi
 - Delete activities and user accounts
 
 
-## 🎨 Design Principles
+## Design Principles
 1. **Accessibility First**: High contrast, clear labels, keyboard navigation
 2. **Bilingual Support**: Display both English and Chinese
 3. **Intuitive Navigation**: Clear user flows and minimal clicks
