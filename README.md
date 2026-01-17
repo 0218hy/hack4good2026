@@ -56,14 +56,14 @@ A responsive, accessible web application for booking and managing charity activi
     ```npm i```
     ```npm run dev```
 
-### Usage
+## Usage
 
 1. **Landing Page**: Start at the main landing page
 2. **Register**: Registration will be only done by staff to ensure the identity of participant, caregiver and the volunteer
 3. **Login**: Use email + phone number to log in (for non-staff), Use email + password to log in (for staff)
 4. **Dashboard**: Access your role-specific dashboard to browse and manage activities
 
-## 👥 User Roles Explained
+## User Roles Explained
 ### Participant
 - Browse and register for activities
 - View registered activities in calendar/list format
