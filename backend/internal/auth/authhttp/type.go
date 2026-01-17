@@ -33,7 +33,7 @@ type RegisterUserPayload struct {
 }
 
 type LoginUserPayload struct {
-	Email  string `json:"name"`
+	Email  string `json:"email"`
 	Phone string `json:"phone,omitempty"`
 	Password string `json:"password,omitempty"`
 }
