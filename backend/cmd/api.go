@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/go-chi/cors"
 )
 
 // mount
@@ -44,6 +45,17 @@ func (app *application) mount() http.Handler {
 	// create token maker
 	tokenMaker := auth.NewJWTMaker(secretKey)
 
+	
+	// CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	})
+	
+
+
 	// For users
 	userService := users.NewService(repo.New(app.db))
 	userHandler := users.NewHandler(userService)
@@ -64,7 +76,8 @@ func (app *application) mount() http.Handler {
 	ActivityHandler := activities.NewHandler(ActivityService)
 	r. Get("/activities", ActivityHandler.ListActivities)
 
-	return r
+	// Wrap with CORS
+	return c.Handler(r)
 }
 
 //run
