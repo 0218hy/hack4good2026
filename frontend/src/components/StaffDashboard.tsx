@@ -1,35 +1,42 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Activity as ActivityIcon, LogOut, Calendar, PlusCircle, Users, List, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Activity } from '../types/activity';
 import CreateActivityModal from './CreateActivityModal';
 import AdminActivityPanel from './AdminActivityPanel';
 import EditActivityModal from './EditActivityModal';
 import StaffAccountCreation from './StaffAccountCreation';
 import EditParticipantModal from './EditParticipantModal';
 import EditVolunteerModal from './EditVolunteerModal';
+import api from 'axios';
 
-interface StaffDashboardProps {
-  activities: Activity[];
-  setActivities: React.Dispatch<React.SetStateAction<Activity[]>>;
-  baseActivities: Activity[];
-  setBaseActivities: React.Dispatch<React.SetStateAction<Activity[]>>;
+interface Activity {
+  id: number;
+  title: string;
+  description?: string;
+  venue: string;
+  start_time: string;
+  end_time: string;
+  signup_deadline: string;
+  participant_capacity: number;
+  volunteer_capacity: number;
+  wheelchair_accessible: boolean;
+  sign_language_available: boolean;
+  requires_payment: boolean;
+  status: string;
+  created_by: number;
+  created_at: string;
 }
 
 interface Participant {
-  id: string;
+  user_id: number;
   name: string;
   email: string;
   phone: string;
-  needs: string;
-  caregiver?: {
-    name: string;
-    email: string;
-    phone: string;
-    relationship?: string;
-    accompanying?: boolean;
-  };
-  notes?: string;
+  age: number;
+  membership_type: string;
+  wheelchair: boolean;
+  sign_language: boolean;
+  other_need: string;
 }
 
 interface Volunteer {
@@ -39,104 +46,100 @@ interface Volunteer {
   phone: string;
 }
 
-export default function StaffDashboard({ activities, setActivities, baseActivities, setBaseActivities }: StaffDashboardProps) {
+type ActiveView =
+  | "calendar"
+  | "list"
+  | "participants"
+  | "volunteers"
+  | "createAccount";
+
+export default function StaffDashboard() {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState<'calendar' | 'list' | 'create' | 'participants' | 'volunteers' | 'createAccount'>('calendar');
+
+  // Backend data
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  // Filters & sorting
+  const [filterStaff, setFilterStaff] = useState<number | "all">("all");
+  const [filterTitle, setFilterTitle] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<string>("");
+  const [filterDateTo, setFilterDateTo] = useState<string>("");
+  const [dateSortOrder, setDateSortOrder] = useState<"asc" | "desc">("asc");
+
+  const [activeView, setActiveView] = useState<ActiveView>("calendar");
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+
+
+  // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1)); // January 2026
   const [showEditModal, setShowEditModal] = useState(false);
-  const [createdUsers, setCreatedUsers] = useState<any[]>([]);
-  
-  // Filter states for Activities List
-  const [filterStaff, setFilterStaff] = useState<string>('all');
-  const [filterActivity, setFilterActivity] = useState<string>('all');
-  const [filterDateFrom, setFilterDateFrom] = useState<string>('');
-  const [filterDateTo, setFilterDateTo] = useState<string>('');
-  const [dateSortOrder, setDateSortOrder] = useState<'asc' | 'desc'>('asc'); // asc = earliest to latest, desc = latest to earliest
-  
-  // Participant and Volunteer state
   const [showEditParticipantModal, setShowEditParticipantModal] = useState(false);
-  const [showEditVolunteerModal, setShowEditVolunteerModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [showEditVolunteerModal, setShowEditVolunteerModal] = useState(false);
   const [selectedVolunteer, setSelectedVolunteer] = useState<Volunteer | null>(null);
-  
-  // Mock participant and volunteer data (now as state)
-  const [participants, setParticipants] = useState<Participant[]>([
-    { 
-      id: '1', 
-      name: 'Alice Johnson', 
-      email: 'alice@example.com', 
-      phone: '+65 9123 4567', 
-      needs: 'Wheelchair-bound',
-      caregiver: {
-        name: 'Mary Johnson',
-        email: 'mary.johnson@example.com',
-        phone: '+65 9111 2222',
-        relationship: 'Mother',
-        accompanying: true
-      },
-      notes: 'Requires wheelchair access'
-    },
-    { 
-      id: '2', 
-      name: 'Bob Smith', 
-      email: 'bob@example.com', 
-      phone: '+65 9234 5678', 
-      needs: 'Sign language',
-      caregiver: {
-        name: 'Sarah Smith',
-        email: 'sarah.smith@example.com',
-        phone: '+65 9333 4444',
-        relationship: 'Sister',
-        accompanying: false
+  const [createdUsers, setCreatedUsers] = useState<any[]>([]);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const resp = await api.get('/staff/dashboard');
+        setActivities(resp.data.activities || []);
+        setParticipants(resp.data.participants || []);
+        setVolunteers(resp.data.volunteers || []);
+      } catch (err) {
+        console.error('Failed to fetch staff dashboard', err);
+        alert('Failed to load dashboard. Please try again.');
+      } finally {
+        setLoading(false);
       }
-    },
-    { 
-      id: '3', 
-      name: 'Carol White', 
-      email: 'carol@example.com', 
-      phone: '+65 9345 6789', 
-      needs: 'None'
-    },
-    { 
-      id: '4', 
-      name: 'David Lee', 
-      email: 'david@example.com', 
-      phone: '+65 9456 7890', 
-      needs: 'Wheelchair-bound, Sign language',
-      caregiver: {
-        name: 'Linda Lee',
-        email: 'linda.lee@example.com',
-        phone: '+65 9555 6666',
-        relationship: 'Spouse',
-        accompanying: true
-      },
-      notes: 'Needs extra assistance'
-    },
-  ]);
+    };
+    fetchDashboardData();
+  }, []);
 
-  const [volunteers, setVolunteers] = useState<Volunteer[]>([
-    { id: '1', name: 'Emily Chen', email: 'emily@example.com', phone: '+65 9567 8901' },
-    { id: '2', name: 'Frank Wong', email: 'frank@example.com', phone: '+65 9678 9012' },
-    { id: '3', name: 'Grace Tan', email: 'grace@example.com', phone: '+65 9789 0123' },
-  ]);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-gray-700 text-xl">Loading dashboard...</p>
+      </div>
+    );
+  }
 
-  const handleCreateActivity = (newActivity: Activity) => {
-    setBaseActivities([...baseActivities, newActivity]);
-    setShowCreateModal(false);
+  // Handlers
+  const handleCreateActivity = async (newActivity: Activity) => {
+    try {
+      const resp = await api.post<Activity>('/activities', newActivity);
+      setActivities([...activities, newActivity]);
+      setShowCreateModal(false);
+    } catch (err) {
+      console.error("Failed to create activity", err);
+      alert('Failed to create activity. Please try again');
+    }
+    
   };
 
-  const handleEditActivity = (updatedActivity: Activity) => {
-    setBaseActivities(baseActivities.map(a => a.id === updatedActivity.id ? updatedActivity : a));
-    setShowEditModal(false);
-    setShowAdminPanel(false);
-  };
+  // const handleEditActivity = (updatedActivity: Activity) => {
+  //   setBaseActivities(baseActivities.map(a => a.id === updatedActivity.id ? updatedActivity : a));
+  //   setShowEditModal(false);
+  //   setShowAdminPanel(false);
+  // };
 
-  const handleDeleteActivity = (activityId: string) => {
-    setBaseActivities(baseActivities.filter(a => a.id !== activityId));
-    setShowAdminPanel(false);
+  const handleDeleteActivity = async (activityId: string) => {
+    try {
+      await api.delete('/activities/${activityId');
+      setActivities(activities.filter(a => a.id !== activityId));
+      setShowAdminPanel(false);
+    } catch (err) {
+      console.error("Failed to delete activity", err);
+    }
+    
   };
 
   const handleAccountCreated = (newUser: any) => {

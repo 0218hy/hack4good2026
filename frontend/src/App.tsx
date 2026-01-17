@@ -41,7 +41,7 @@ export default function App() {
         <Route path="/dashboard/participant" element={<ParticipantDashboard activities={activities} setActivities={setActivities} />} />
         <Route path="/dashboard/caregiver" element={<CaregiverDashboard activities={activities} setActivities={setActivities} />} />
         <Route path="/dashboard/volunteer" element={<VolunteerDashboard activities={activities} setActivities={setActivities} />} />
-        <Route path="/dashboard/staff" element={<StaffDashboard activities={activities} setActivities={setActivities} baseActivities={baseActivities} setBaseActivities={setBaseActivities} />} />
+        <Route path="/staff/dashboard" element={<StaffDashboard />} />
       </Routes>
     </Router>
   );

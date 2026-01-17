@@ -31,7 +31,7 @@ export default function LoginPage() {
   //     const {token} = response.data;
   //     localStorage.setItem('authToken', token);
 
-      navigate('/dashboard/${role}');
+      navigate(`/${role}/dashboard`);
     // } catch (error: any) {
     //   alert(error.response?.data?.message ||'Login failed. Please check your credentials.');
     // }

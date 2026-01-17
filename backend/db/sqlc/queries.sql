@@ -151,3 +151,19 @@ WHERE
   activity_id = $1;
 
 
+-- name: ListActivitiesWithCounts :many
+SELECT
+  a.id,
+  a.title,
+  a.description,
+  a.venue,
+  a.start_time,
+  a.end_time,
+  a.signup_deadline,
+  a.participant_capacity,
+  a.volunteer_capacity,
+  COUNT(b.id) AS registered_participants_count
+FROM activities a
+LEFT JOIN bookings b
+  ON b.activity_id = a.id
+  AND b.role = 'participant';   -- filter only participants
