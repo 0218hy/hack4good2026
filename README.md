@@ -1,3 +1,8 @@
+#Problem statement 
+MINDS: How might we reduce friction in activity sign-ups for both individuals and
+caregivers, while reducing manual effort for staff in managing and
+consolidating registration data?
+
 # MINDS Acitivity Hub
 A responsive, accessible web application for booking and managing charity activities for MINDS.
 
