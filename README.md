@@ -1,4 +1,4 @@
-#Problem statement 
+# Problem statement being addressed
 MINDS: How might we reduce friction in activity sign-ups for both individuals and
 caregivers, while reducing manual effort for staff in managing and
 consolidating registration data?
